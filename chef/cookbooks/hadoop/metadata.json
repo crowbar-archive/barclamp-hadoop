@@ -1,0 +1,40 @@
+{
+  "description": "Installs and Configures a hadoop cluster",
+  "recipes": {
+    "hadoop::default": "Installs hadoop base libraries and conguration.",
+    "hadoop::jobtracker": "Installs the job tracker package.",
+	"hadoop::masternamenode": "Installs the master name node package and prepares the file system.",
+    "hadoop::secondarynamenode": "Installs the secondary name node package and prepares the file system.",
+    "hadoop::datanode": "Installs the slave node and task tracker packages and prepares the file system.",
+    "hadoop::edgenode": "Installs the edge node and task tracker packages and prepares the file system.",
+	"hadoop::hive-sql": "Ensure that mysql is running and hive can log into it.",
+    "hadoop::hive": "Installs the Hive package.",
+    "hadoop::flume": "Installs the Base Flume package.",
+    "hadoop::flume-masternode": "Installs the Flume master node package.",
+    "hadoop::flume-slavenode": "Installs the Flume slave node package."
+  },
+  "suggestions": {
+  },
+  "conflicting": {
+  },
+  "version": "1.0",
+  "long_description": "= DESCRIPTION:\n\n= REQUIREMENTS:\n\n= ATTRIBUTES:\n\n= USAGE:\n\n",
+  "name": "hadoop",
+  "providing": {
+  },
+  "attributes": {
+  },
+  "maintainer": "",
+  "replacing": {
+  },
+  "license": "All rights reserved",
+  "maintainer_email": "",
+  "groupings": {
+  },
+  "dependencies": {
+  },
+  "platforms": {
+  },
+  "recommendations": {
+  }
+}

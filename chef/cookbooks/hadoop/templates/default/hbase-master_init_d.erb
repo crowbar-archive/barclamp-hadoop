@@ -1,0 +1,102 @@
+#!/bin/sh
+#
+# Cookbook Name: hadoop
+# File: hbase-regionservers.sh
+#
+# Copyright (c) 2011 Dell Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Provides:          hbase master services
+# Required-Start:    $network
+# Required-Stop:     $network
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Description:       Hbase master services
+# Short-Description: Enable Hbase master services including hdfs
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+HBASE_DIR=<%= @node[:hadoop][:hbase][:hbase_dir] %>
+HBASE_BIN=$HBASE_DIR/bin
+HBASE_LOG_DIR=<%= @node[:hadoop][:hbase][:hbase_log_dir] %>
+NAME=hbase_master
+DESC=hbase_master
+USER=<%= @node[:hadoop][:hbase][:hbase_user] %>
+ROTATE_SUFFIX=
+test -x $HBASE_BIN || exit 0
+RETVAL=0
+set -e
+cd /
+
+start_hbase () {
+    set +e
+    su $USER -s /bin/sh -c $HBASE_BIN/start-hbase.sh > $HBASE_LOG_DIR/startup_log
+    case "$?" in
+      0)
+        echo SUCCESS
+        RETVAL=0
+        ;;
+      1)
+        echo TIMEOUT - check $HBASE_LOG_DIR/startup_log
+        RETVAL=1
+        ;;
+      *)
+        echo FAILED - check $HBASE_LOG_DIR/startup_log
+        RETVAL=1
+        ;;
+    esac
+    set -e
+}
+
+stop_hbase () {
+    set +e
+    if [ $RETVAL = 0 ] ; then
+        su $USER -s /bin/sh -c $HBASE_BIN/stop-hbase.sh > $HBASE_LOG_DIR/shutdown_log
+        RETVAL=$?
+        if [ $RETVAL != 0 ] ; then
+            echo FAILED - check $HBASE_LOG_DIR/shutdown_log
+        fi
+    else
+        echo No nodes running
+        RETVAL=0
+    fi
+    set -e
+}
+
+restart_hbase() {
+    stop_hbase
+    start_hbase
+}
+
+case "$1" in
+    start)
+        echo -n "Starting $DESC: "
+        start_hbase
+        echo "$NAME."
+        ;;
+    stop)
+        echo -n "Stopping $DESC: "
+        stop_hbase
+        echo "$NAME."
+        ;;
+    force-reload|restart)
+        echo -n "Restarting $DESC: "
+        restart_hbase
+        echo "$NAME."
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|force-reload}" >&2
+        RETVAL=1
+        ;;
+esac
+exit $RETVAL
