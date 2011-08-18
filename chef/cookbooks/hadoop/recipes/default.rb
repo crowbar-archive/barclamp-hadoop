@@ -23,6 +23,20 @@
 debug = node[:hadoop][:debug]
 Chef::Log.info("BEGIN hadoop:default") if debug
 
+case node[:platform]
+when "redhat","centos"
+  # install the Oracle jdk
+  package "jdk" do
+    action :install
+  end
+  # Remove OpenJDK
+  ["java-1.6.0-openjdk-devel", "java-1.6.0-openjdk"].each do |p|
+    package p do
+      action :remove
+    end
+  end
+end
+
 # Install the packages.
 package "hadoop-0.20" do
   # version node[:hadoop][:packages][:core][:version]
