@@ -27,55 +27,6 @@ Chef::Log.info("BEGIN hadoop:edgenode") if debug
 node[:hadoop][:node_type] = "edgenode"
 node.save
 
-# Install and start the services.
-package "hadoop-0.20-datanode" do
-  action :install
-  # version node[:hadoop][:packages][:core][:version]
-end
-
-package "hadoop-0.20-tasktracker" do
-  action :install
-  # version node[:hadoop][:packages][:core][:version]
-end
-
-# Configure the disks.
-include_recipe 'hadoop::configure-disks'
-
-# Setup the DFS data directory. 
-node[:hadoop][:hdfs][:dfs_data_dir].each do |dataDir|
-  directory dataDir do
-    owner "hdfs"
-    group "hadoop"
-    mode "0755"
-    recursive true
-    action :create
-  end
-end
-
-# Setup the MAP/REDUCE local directory. 
-node[:hadoop][:mapred][:mapred_local_dir].each do |localDir|
-  directory localDir do
-    owner "mapred"
-    group "hadoop"
-    mode "0755"
-    recursive true
-    action :create
-  end
-end
-
-# Start the services.
-service "hadoop-0.20-datanode" do
-  action [ :enable, :start ]
-  running true
-  supports :status => true, :start => true, :stop => true, :restart => true
-end
-
-service "hadoop-0.20-tasktracker" do
-  action [ :enable, :start ]
-  running true
-  supports :status => true, :start => true, :stop => true, :restart => true
-end
-
 #######################################################################
 # End of recipe transactions
 #######################################################################

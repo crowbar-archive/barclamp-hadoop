@@ -409,6 +409,8 @@
           "required": true,
           "mapping": {
             "crowbar-revision": { "type": "int", "required": true },
+            "crowbar-committing": { "type": "bool" },
+            "crowbar-queued": { "type": "bool" },
             "elements": {
               "type": "map",
               "required": true,

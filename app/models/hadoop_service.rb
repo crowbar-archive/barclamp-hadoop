@@ -21,9 +21,53 @@ class HadoopService < ServiceObject
   end
   
   def create_proposal
-    @logger.debug("Hadoop create_proposal: entering")
+    @logger.debug("hadoop create_proposal: entering")
     base = super
-    @logger.debug("Hadoop create_proposal: exiting")
+    
+    # Get the node list
+    nodes = NodeObject.all
+    nodes.delete_if { |n| n.nil? or n.admin? }
+    
+    # Compute the cluster node distribution.
+    # You need at least 3 nodes (master, secondary and slave) to
+    # implement a baseline hadoop framework. The edge node is added if 
+    # the node count is 4 or higher.
+    master = [ ]
+    secondary = [ ]
+    edge = [ ]
+    slaves = [ ]
+    
+    if nodes.size == 1
+      master << nodes[0][:fqdn] if nodes[0][:fqdn]
+    elsif nodes.size == 2
+      master << nodes[0][:fqdn] if nodes[0][:fqdn]
+      secondary << nodes[1][:fqdn] if nodes[1][:fqdn]
+    elsif nodes.size == 3
+      master << nodes[0][:fqdn] if nodes[0][:fqdn]
+      secondary << nodes[1][:fqdn] if nodes[1][:fqdn]
+      slaves << nodes[2][:fqdn] if nodes[2][:fqdn]        
+    elsif nodes.size > 3
+      # Maintain the original edge node order
+      master << nodes[0][:fqdn] if nodes[0][:fqdn]
+      secondary << nodes[1][:fqdn] if nodes[1][:fqdn]
+      slaves << nodes[2][:fqdn] if nodes[2][:fqdn]        
+      edge << nodes[3][:fqdn] if nodes[3][:fqdn]
+      if (nodes.size > 4)
+        nodes[4 .. nodes.size].each { |x|
+          slaves << x[:fqdn] if x[:fqdn]
+        }
+      end
+    end
+    
+    # Add the proposal elements
+    base["deployment"]["hadoop"]["elements"] = { } 
+    base["deployment"]["hadoop"]["elements"]["hadoop-masternamenode"] = master if master && !master.empty? 
+    base["deployment"]["hadoop"]["elements"]["hadoop-secondarynamenode"] = secondary if secondary && !secondary.empty? 
+    base["deployment"]["hadoop"]["elements"]["hadoop-edgenode"] = edge if edge && !edge.empty?  
+    base["deployment"]["hadoop"]["elements"]["hadoop-slavenode"] = slaves if slaves && !slaves.empty?   
+    
+    # @logger.debug("hadoop #{base.to_json}")
+    @logger.debug("hadoop create_proposal: exiting")
     base
   end
   

@@ -22,6 +22,7 @@
 #######################################################################
 default[:hadoop][:hdfs][:dfs_base_dir] = "/mnt/hdfs"
 default[:hadoop][:hdfs][:dfs_access_port] = "8020"
+default[:hadoop][:hdfs][:dfs_namenode_user] = "hdfs"
 
 #######################################################################
 # Site specific HDFS settings (/etc/hadoop/conf/hdfs-site.xml).

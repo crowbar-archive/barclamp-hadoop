@@ -21,7 +21,7 @@
 # Begin recipe transactions
 #######################################################################
 debug = node[:hadoop][:debug]
-log("BEGIN hadoop:configure-disks") if debug
+Chef::Log.info("BEGIN hadoop:configure-disks") if debug
 
 # Configure the hadoop disks.
 cookbook_file "/tmp/configure-disks.sh" do
@@ -60,27 +60,29 @@ else
 end
 
 # Update dfs_name_dir if changes have been detected.
-if (!new_array.blank? && new_array != cur_array)
+if (!new_array.nil? && new_array.length > 0 && new_array != cur_array)
   node.set[:hadoop][:hdfs][:dfs_name_dir] = new_array
   node.save
 end
 
 #######################################################################
-# Need to run 'hadoop namenode -format' manually for now.
+# Format the hadoop file system.
+# exec 'hadoop namenode -format'.
 # You can't be root (or you need to specify HADOOP_NAMENODE_USER).
-# We need to add code here to format the hadoop file systems.
 #######################################################################
-
-=begin
 dfs_image_dir = "#{hb}/data1/image"
-unless File.exists?(dfs_image_dir)
+dfs_namenode_user = node[:hadoop][:hdfs][:dfs_namenode_user]
+if (!File.exists?("#{hb}/data1/image")) 
+  Chef::Log.info("echo 'Y' | hadoop namenode -format #{dfs_namenode_user}") if debug
   execute "hdfs_format" do
-    command "hadoop namenode -format"
+    user dfs_namenode_user
+    command "echo 'Y' | hadoop namenode -format"
   end
+else 
+  Chef::Log.info("skipping hdfs format") if debug
 end
-=end
 
 #######################################################################
 # End of recipe transactions
 #######################################################################
-log("END hadoop:configure-disks") if debug
+Chef::Log.info("END hadoop:configure-disks") if debug

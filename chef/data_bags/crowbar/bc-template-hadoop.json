@@ -350,11 +350,7 @@
           "hadoop-masternamenode",
           "hadoop-secondarynamenode",
           "hadoop-slavenode",
-          "hadoop-edgenode",
-          "hadoop-hbase-masternode",
-          "hadoop-hbase-regionserver",
-          "hadoop-flume-masternode",
-          "hadoop-flume-slavenode"
+          "hadoop-edgenode"
         ]
       ],
       "config": {
