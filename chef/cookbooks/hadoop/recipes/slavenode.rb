@@ -30,13 +30,11 @@ node.save
 # Install the data node package.
 package "hadoop-0.20-datanode" do
   action :install
-  # version node[:hadoop][:packages][:core][:version]
 end
 
 # Install the task tracker package.
 package "hadoop-0.20-tasktracker" do
   action :install
-  # version node[:hadoop][:packages][:core][:version]
 end
 
 # Configure the disks.

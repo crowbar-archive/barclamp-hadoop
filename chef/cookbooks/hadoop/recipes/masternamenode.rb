@@ -37,7 +37,6 @@ node.save
 # Install the name node package.
 package "hadoop-0.20-namenode" do
   action :install
-  # version node[:hadoop][:packages][:core][:version]
 end
 
 # Configure DFS host exclusion.

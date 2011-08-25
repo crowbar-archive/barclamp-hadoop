@@ -1,7 +1,7 @@
 maintainer       "Dell, Inc."
 maintainer_email "Paul_Webster@Dell.com"
 license          "All rights reserved"
-description      "Installs and Configures a hadoop cluster."
+description      "Installs and configures the baseline hadoop cluster component (HDFS/Map Reduce)"
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.rdoc'))
 version          "1.0"
 recipe           "hadoop::default", "Installs hadoop base libraries and configuration."

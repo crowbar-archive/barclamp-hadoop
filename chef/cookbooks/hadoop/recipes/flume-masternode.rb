@@ -26,7 +26,6 @@ Chef::Log.info("BEGIN hadoop:flume-masternode") if debug
 # Install the flume flume package.
 package "flume-master-0.9.3" do
   action :install
-  # version node[:hadoop][:packages][:flume][:version]
 end
 
 # Create the flume configuration file.

@@ -37,7 +37,6 @@ end
 # Install the hbase package.
 package "hadoop-hbase" do
   action :install
-  # version node[:hadoop][:packages][:hbase][:version]
 end
 
 #######################################################################

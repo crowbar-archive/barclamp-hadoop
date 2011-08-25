@@ -72,8 +72,25 @@ end
 #######################################################################
 dfs_image_dir = "#{hb}/data1/image"
 dfs_namenode_user = node[:hadoop][:hdfs][:dfs_namenode_user]
+
 if (!File.exists?("#{hb}/data1/image")) 
+  
+  # Ensure that the parent directory exists
+  dfs_name_dir = "#{hb}/data1"
+  Chef::Log.info("mkdir #{dfs_name_dir}") if debug
+  directory dfs_name_dir do
+    owner "hdfs"
+    group "hadoop"
+    mode "0755"
+    recursive true
+    action :create
+    not_if "test -d #{dfs_name_dir}"
+  end
+  
+  # run HDFS format 
   Chef::Log.info("echo 'Y' | hadoop namenode -format #{dfs_namenode_user}") if debug
+  
+  # HDFS cannot run as root, so override the process owner
   execute "hdfs_format" do
     user dfs_namenode_user
     command "echo 'Y' | hadoop namenode -format"

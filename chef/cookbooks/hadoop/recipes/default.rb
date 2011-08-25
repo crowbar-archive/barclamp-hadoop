@@ -23,20 +23,24 @@
 debug = node[:hadoop][:debug]
 Chef::Log.info("BEGIN hadoop:default") if debug
 
-# Install the packages.
-package "hadoop-0.20" do
-  # version node[:hadoop][:packages][:core][:version]
+# Install the Oracle/SUN JAVA package.
+package "jdk" do
   action :install
 end
 
+# Install the hadoop base package.
+package "hadoop-0.20" do
+  action :install
+end
+
+# Install the hadoop datanode package.
 package "hadoop-0.20-datanode" do
   action :install
-  # version node[:hadoop][:packages][:core][:version]
 end
 
+# Install the hadoop tasktracker package.
 package "hadoop-0.20-tasktracker" do
   action :install
-  # version node[:hadoop][:packages][:core][:version]
 end
 
 # Create the logging directory with proper permissions. 
