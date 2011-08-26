@@ -26,7 +26,6 @@ Chef::Log.info("BEGIN hadoop:jobtracker") if debug
 # Install the job tracker package. 
 package "hadoop-0.20-jobtracker" do
   action :install
-  # version node[:hadoop][:packages][:core][:version]
 end
 
 # Setup the fair scheduler.

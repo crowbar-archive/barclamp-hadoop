@@ -1,6 +1,6 @@
 = DESCRIPTION:
 
-Installs and Configures a hadoop cluster.
+Installs and configures the baseline hadoop cluster component (HDFS/Map Reduce).
 
 = REQUIREMENTS:
 

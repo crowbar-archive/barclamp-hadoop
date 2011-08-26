@@ -1,6 +1,6 @@
 {
   "id": "bc-template-hadoop",
-  "description": "Provides the capability to deploy and maintain a baseline Hadoop cluster environment (HDFS/MapReduce) with additional support for installing hadoop extension packages such as HBase, Hive, Pig, Flume, Sqoop and ZooKeeper.",
+  "description": "Installs and configures the baseline hadoop cluster component (HDFS/Map Reduce)",
   "attributes": {
     "hadoop": {
       "debug": true,

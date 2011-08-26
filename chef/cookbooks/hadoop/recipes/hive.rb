@@ -25,7 +25,6 @@ Chef::Log.info("BEGIN hadoop:hive") if debug
 
 package "hadoop-hive" do
   action :install
-  # version node[:hadoop][:packages][:hive][:version]
 end
 
 # Setup the hive config file.

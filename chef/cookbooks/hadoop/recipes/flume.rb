@@ -26,7 +26,6 @@ Chef::Log.info("BEGIN hadoop:flume") if debug
 # Install the flume package.
 package "flume-0.9.3" do
   action :install
-  # version node[:hadoop][:packages][:flume][:version]
 end
 
 #######################################################################

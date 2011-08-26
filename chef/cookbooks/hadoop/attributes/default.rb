@@ -25,9 +25,3 @@
 default[:hadoop][:config] = {}
 default[:hadoop][:config][:environment] = "hadoop-config-default"
 default[:hadoop][:debug] = true
-
-# Hadoop package versions   
-default[:hadoop][:packages][:core][:version] = "0.20.2+923.21-1"
-default[:hadoop][:packages][:hive][:version] = "0.7.0+11-2"
-default[:hadoop][:packages][:flume][:version] = "0.9.3+15.3-1"
-default[:hadoop][:packages][:hbase][:version] = "0.90.1+15.18-1"

@@ -41,7 +41,6 @@ end
 # Install the secondary name node service.
 package "hadoop-0.20-secondarynamenode" do
   action :install
-  # version node[:hadoop][:packages][:core][:version]
 end
 
 # Make sure the fs_checkpoint_dir exists. 
