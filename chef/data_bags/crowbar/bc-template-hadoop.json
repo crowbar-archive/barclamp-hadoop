@@ -4,7 +4,8 @@
   "attributes": {
     "hadoop": {
       "debug": true,
-      "admin_ip_eval": "Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").address",
+      "cloudera_enterprise_scm": false,
+	  "admin_ip_eval": "Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").address",
       "admin_interface_eval": "Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").interface",
       "core": {
         "fs_checkpoint_dir": [ "/tmp/hadoop-metadata" ],

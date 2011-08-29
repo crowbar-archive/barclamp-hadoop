@@ -37,6 +37,12 @@ package "hadoop-0.20-tasktracker" do
   action :install
 end
 
+# Enables the Cloudera Service and Configuration Manager (SCM).
+# Requires the installation of the Cloudera Enterprise Edition.
+if node[:hadoop][:cloudera_enterprise_scm]
+  include_recipe 'hadoop::cloudera-scm-agent'
+end
+
 # Configure the disks.
 include_recipe 'hadoop::configure-disks'
 

@@ -39,6 +39,12 @@ package "hadoop-0.20-namenode" do
   action :install
 end
 
+# Enables the Cloudera Service and Configuration Manager (SCM).
+# Requires the installation of the Cloudera Enterprise Edition.
+if node[:hadoop][:cloudera_enterprise_scm]
+  include_recipe 'hadoop::cloudera-scm-server'
+end
+
 # Configure DFS host exclusion.
 template "/etc/hadoop/conf/dfs.hosts.exclude" do
   owner "root"

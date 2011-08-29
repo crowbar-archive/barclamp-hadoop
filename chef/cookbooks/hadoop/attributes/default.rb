@@ -21,7 +21,10 @@
 # Crowbar barclamp configuration parameters.
 #######################################################################
 
-# Crowbar barclamp config block
 default[:hadoop][:config] = {}
 default[:hadoop][:config][:environment] = "hadoop-config-default"
 default[:hadoop][:debug] = true
+
+# Enables the Cloudera Service and Configuration Manager (SCM).
+# Requires the installation of the Cloudera Enterprise Edition.
+default[:hadoop][:cloudera_enterprise_scm] = false

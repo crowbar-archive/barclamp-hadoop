@@ -1,5 +1,5 @@
 {
-  "description": "Installs and configures the baseline hadoop cluster component (HDFS/Map Reduce)",
+  "description": "Installs and configures the hadoop cluster component (HDFS/Map Reduce)",
   "recipes": {
     "hadoop::default": "Installs hadoop base libraries and conguration.",
     "hadoop::jobtracker": "Installs the job tracker package.",
@@ -11,7 +11,9 @@
     "hadoop::hive": "Installs the Hive package.",
     "hadoop::flume": "Installs the Base Flume package.",
     "hadoop::flume-masternode": "Installs the Flume master node package.",
-    "hadoop::flume-slavenode": "Installs the Flume slave node package."
+    "hadoop::flume-slavenode": "Installs the Flume slave node package.",
+    "hadoop::cloudera-scm-server": "Install the Cloudera Service and Configuration Manager (SCM) server.",
+    "hadoop::cloudera-scm-agent": "Install the Cloudera Service and Configuration Manager (SCM) agent."
   },
   "suggestions": {
   },

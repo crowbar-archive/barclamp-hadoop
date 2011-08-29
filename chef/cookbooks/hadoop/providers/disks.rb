@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 
+=begin
 require 'chef/mixin/shell_out'
 include Chef::Mixin::ShellOut
 
@@ -37,5 +38,4 @@ def get_disks()
   result = pipe.readlines
   parse_results result  
 end
-
-
+=end
