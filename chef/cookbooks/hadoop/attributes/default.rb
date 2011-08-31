@@ -28,3 +28,8 @@ default[:hadoop][:debug] = true
 # Enables the Cloudera Service and Configuration Manager (SCM).
 # Requires the installation of the Cloudera Enterprise Edition.
 default[:hadoop][:cloudera_enterprise_scm] = false
+
+default[:hadoop][:cluster] = {}
+default[:hadoop][:cluster][:node_type] = ""
+default[:hadoop][:cluster][:masters] = []
+default[:hadoop][:cluster][:slaves] = []

@@ -24,14 +24,7 @@ debug = node[:hadoop][:debug]
 Chef::Log.info("BEGIN hadoop:masternamenode") if debug
 
 # Set the hadoop node type.
-node[:hadoop][:node_type] = "masternamenode"
-
-# Set the authoritative name node URI (i.e. hdfs://admin.example.com:8020).
-fqdn = node[:fqdn]
-port = node[:hadoop][:hdfs][:dfs_access_port]
-fs_default_name = "hdfs://#{fqdn}:#{port}"
-Chef::Log.info("fs_default_name #{fs_default_name}") if debug
-node[:hadoop][:core][:fs_default_name] = fs_default_name
+node[:hadoop][:cluster][:node_type] = "masternamenode"
 node.save
 
 # Install the name node package.

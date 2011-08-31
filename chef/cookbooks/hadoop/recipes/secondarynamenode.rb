@@ -24,7 +24,7 @@ debug = node[:hadoop][:debug]
 Chef::Log.info("BEGIN hadoop:secondarynamenode") if debug
 
 # Set the hadoop node type.
-node[:hadoop][:node_type] = "secondarynamenode"
+node[:hadoop][:cluster][:node_type] = "secondarynamenode"
 node.save
 
 # Make sure the dfs name secondary directory exists. 

@@ -24,7 +24,7 @@ debug = node[:hadoop][:debug]
 Chef::Log.info("BEGIN hadoop:slavenode") if debug
 
 # Set the hadoop node type.
-node[:hadoop][:node_type] = "slavenode"
+node[:hadoop][:cluster][:node_type] = "slavenode"
 node.save
 
 # Install the data node package.

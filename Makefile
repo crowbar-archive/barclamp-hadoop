@@ -12,8 +12,8 @@ build:
 
 install:
 	@echo "Installing barclamp-hadoop"
-	mkdir -p ${DESTDIR}/opt/crowbar/crowbar_framework
-	cp -r app ${DESTDIR}/opt/crowbar/crowbar_framework
+	mkdir -p ${DESTDIR}/opt/crowbar/openstack_manager
+	cp -r app ${DESTDIR}/opt/crowbar/openstack_manager
 	mkdir -p ${DESTDIR}/usr/share/barclamp-hadoop
 	cp -r chef ${DESTDIR}/usr/share/barclamp-hadoop
 	mkdir -p ${DESTDIR}/usr/bin
