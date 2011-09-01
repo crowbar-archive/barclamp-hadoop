@@ -23,7 +23,10 @@
 debug = node[:hadoop][:debug]
 Chef::Log.info("BEGIN hadoop:default") if debug
 
-# Install the Oracle/SUN JAVA package.
+# Configuration filter for our environment
+env_filter = " AND environment:#{node[:hadoop][:config][:environment]}"
+
+# Install the Oracle/SUN JAVA package (Hadoop requires the JDK).
 package "jdk" do
   action :install
 end
@@ -33,51 +36,32 @@ package "hadoop-0.20" do
   action :install
 end
 
-# Install the hadoop datanode package.
+# Install the hadoop datanode service.
 package "hadoop-0.20-datanode" do
   action :install
 end
 
-# Install the hadoop tasktracker package.
+# Install the hadoop tasktracker service.
 package "hadoop-0.20-tasktracker" do
   action :install
 end
 
-# Create the logging directory with proper permissions. 
-ldir = node[:hadoop][:env][:hadoop_log_dir]
-directory ldir do
-  owner "root"
-  group "hadoop"
-  mode "0775"
-  recursive true
-  action :create
-  not_if "test -d #{ldir}"
-end
-
-# The only services we ever want to automatically restart upon a config change
-# are these two so we define them up here.
-service "hadoop-0.20-datanode" do
-  supports :status => true, :start => true, :stop => true, :restart => true
-end
-
-service "hadoop-0.20-tasktracker" do
-  supports :status => true, :start => true, :stop => true, :restart => true
-end
-
-# Base filter for our environment
-env_filter = " AND environment:#{node[:hadoop][:config][:environment]}"
-
-# Find the master name node 
+# Find the master name node (should only be one). 
 master_nodes = Array.new
 search(:node, "roles:hadoop-masternamenode#{env_filter}") do |n|
-  master_nodes << n[:fqdn] if n[:fqdn] 
+  master_nodes << n[:fqdn] if n[:fqdn] && !n[:fqdn].empty?
 end
 node[:hadoop][:cluster][:masters] = master_nodes
 
-# Find the slave nodes 
+# Check for errors
+if master_nodes.length > 1
+  Chef::Log.warn("WARNING - More than one master name node found, using #{master_nodes[0]}")
+end
+
+# Find the slave nodes. 
 slave_nodes = Array.new
 search(:node, "roles:hadoop-slavenode#{env_filter}") do |n|
-  slave_nodes << n[:fqdn] if n[:fqdn] 
+  slave_nodes << n[:fqdn] if n[:fqdn] && !n[:fqdn].empty? 
 end
 node[:hadoop][:cluster][:slaves] = slave_nodes
 
@@ -99,7 +83,28 @@ end
 
 node.save
 
-# Configure the master and slave nodes.  
+# Create the logging directory and set ownership/permissions. 
+ldir = node[:hadoop][:env][:hadoop_log_dir]
+directory ldir do
+  owner "root"
+  group "hadoop"
+  mode "0775"
+  recursive true
+  action :create
+  not_if "test -d #{ldir}"
+end
+
+# The only services we ever want to automatically restart upon
+# a config change are these two so we define them up here.
+service "hadoop-0.20-datanode" do
+  supports :status => true, :start => true, :stop => true, :restart => true
+end
+
+service "hadoop-0.20-tasktracker" do
+  supports :status => true, :start => true, :stop => true, :restart => true
+end
+
+# Configure the master nodes.  
 template "/etc/hadoop/conf/masters" do
   owner "root"
   group "hadoop"
@@ -109,11 +114,22 @@ template "/etc/hadoop/conf/masters" do
   notifies :restart, resources(:service => "hadoop-0.20-tasktracker")
 end
 
+# Configure the slave nodes.  
 template "/etc/hadoop/conf/slaves" do
   owner "root"
   group "hadoop"
   mode "0644"
   source "slaves.erb"
+  notifies :restart, resources(:service => "hadoop-0.20-datanode")
+  notifies :restart, resources(:service => "hadoop-0.20-tasktracker")
+end
+
+# Drop the Hadoop configuration on the target host and restart the services.  
+template "/etc/hadoop/conf/core-site.xml" do
+  owner "root"
+  group "hadoop"
+  mode "0644"
+  source "core-site.xml.erb"
   notifies :restart, resources(:service => "hadoop-0.20-datanode")
   notifies :restart, resources(:service => "hadoop-0.20-tasktracker")
 end

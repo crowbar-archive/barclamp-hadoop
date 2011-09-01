@@ -44,7 +44,7 @@ default[:hadoop][:core][:fs_checkpoint_size] = "67108864"
 # determine the FileSystem implementation. The uri's scheme determines the
 # config property (fs.SCHEME.impl) naming the FileSystem implementation
 # class. The uri's authority is used to determine the host, port, etc. for
-# a filesystem (example - "hdfs://namenode.example.com:8020" - default "file:///").
+# a filesystem (example - "hdfs://namenode.example.com:8020").
 default[:hadoop][:core][:fs_default_name] = "file:///"
 
 # The FileSystem for file: uris.
