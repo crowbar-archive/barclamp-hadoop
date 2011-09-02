@@ -7,11 +7,6 @@
     "hadoop::secondarynamenode": "Installs the secondary name node package and prepares the file system.",
     "hadoop::datanode": "Installs the slave node and task tracker packages and prepares the file system.",
     "hadoop::edgenode": "Installs the edge node and task tracker packages and prepares the file system.",
-	"hadoop::hive-sql": "Ensure that mysql is running and hive can log into it.",
-    "hadoop::hive": "Installs the Hive package.",
-    "hadoop::flume": "Installs the Base Flume package.",
-    "hadoop::flume-masternode": "Installs the Flume master node package.",
-    "hadoop::flume-slavenode": "Installs the Flume slave node package.",
     "hadoop::cloudera-scm-server": "Install the Cloudera Service and Configuration Manager (SCM) server.",
     "hadoop::cloudera-scm-agent": "Install the Cloudera Service and Configuration Manager (SCM) agent."
   },

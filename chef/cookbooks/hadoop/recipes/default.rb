@@ -46,35 +46,59 @@ package "hadoop-0.20-tasktracker" do
   action :install
 end
 
-# Find the master name node (should only be one). 
-master_nodes = Array.new
+# Find the master name nodes (there should only be one). 
+master_name_nodes = Array.new
 search(:node, "roles:hadoop-masternamenode#{env_filter}") do |n|
-  master_nodes << n[:fqdn] if n[:fqdn] && !n[:fqdn].empty?
+  master_name_nodes << n[:fqdn] if n[:fqdn] && !n[:fqdn].empty?
 end
-node[:hadoop][:cluster][:masters] = master_nodes
+node[:hadoop][:cluster][:master_name_nodes] = master_name_nodes
 
 # Check for errors
-if master_nodes.length > 1
-  Chef::Log.warn("WARNING - More than one master name node found, using #{master_nodes[0]}")
+if master_name_nodes.length == 0
+  Chef::Log.warn("WARNING - Cannot find Hadoop master name node")
+elsif master_name_nodes.length > 1
+  Chef::Log.warn("WARNING - More than one master name node found, using #{master_name_nodes[0]}")
 end
+
+# Find the secondary name nodes (there should only be one). 
+secondary_name_nodes = Array.new
+search(:node, "roles:hadoop-secondarynamenode#{env_filter}") do |n|
+  secondary_name_nodes << n[:fqdn] if n[:fqdn] && !n[:fqdn].empty?
+end
+node[:hadoop][:cluster][:secondary_name_nodes] = secondary_name_nodes
+
+# Check for errors
+if secondary_name_nodes.length == 0
+  Chef::Log.warn("WARNING - Cannot find Hadoop secondary name node")
+elsif secondary_name_nodes.length > 1
+  Chef::Log.warn("WARNING - More than one secondary name node found, using #{secondary_name_nodes[0]}")
+end
+
+# Find the edge nodes. 
+edge_nodes = Array.new
+search(:node, "roles:hadoop-edgenode#{env_filter}") do |n|
+  edge_nodes << n[:fqdn] if n[:fqdn] && !n[:fqdn].empty? 
+end
+node[:hadoop][:cluster][:edge_nodes] = edge_nodes
 
 # Find the slave nodes. 
 slave_nodes = Array.new
 search(:node, "roles:hadoop-slavenode#{env_filter}") do |n|
   slave_nodes << n[:fqdn] if n[:fqdn] && !n[:fqdn].empty? 
 end
-node[:hadoop][:cluster][:slaves] = slave_nodes
+node[:hadoop][:cluster][:slave_nodes] = slave_nodes
 
 if debug
-  Chef::Log.info("MASTER  {" + master_nodes.to_s + "}")
-  Chef::Log.info("PRIMARY {" + master_nodes[0] + "}")
-  Chef::Log.info("SLAVES  {" + slave_nodes.to_s + "}")
+  Chef::Log.info("MASTER_NAME_NODES    {" + master_name_nodes.to_s + "}")
+  Chef::Log.info("SECONDARY_NAME_NODES {" + secondary_name_nodes.to_s + "}")
+  Chef::Log.info("EDGE_NODES           {" + edge_nodes.to_s + "}")
+  Chef::Log.info("SLAVE_NODES          {" + slave_nodes.to_s + "}")
 end
 
 # Set the authoritative name node URI (i.e. hdfs://admin.example.com:8020).
 node[:hadoop][:core][:fs_default_name] = "file:///"
-if master_nodes.length > 0
-  fqdn = master_nodes[0]
+if master_name_nodes.length > 0
+  fqdn = master_name_nodes[0]
   port = node[:hadoop][:hdfs][:dfs_access_port]
   fs_default_name = "hdfs://#{fqdn}:#{port}"
   Chef::Log.info("fs_default_name #{fs_default_name}") if debug
