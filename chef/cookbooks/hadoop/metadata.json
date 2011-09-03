@@ -1,7 +1,7 @@
 {
   "description": "Installs and configures the hadoop cluster component (HDFS/Map Reduce)",
   "recipes": {
-    "hadoop::default": "Installs hadoop base libraries and conguration.",
+    "hadoop::default": "Installs hadoop base libraries and configuration.",
     "hadoop::jobtracker": "Installs the job tracker package.",
 	"hadoop::masternamenode": "Installs the master name node package and prepares the file system.",
     "hadoop::secondarynamenode": "Installs the secondary name node package and prepares the file system.",
