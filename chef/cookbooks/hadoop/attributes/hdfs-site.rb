@@ -64,7 +64,8 @@ default[:hadoop][:hdfs][:dfs_client_block_write_retries] = "3"
 # its blocks. If this is a comma-delimited list of directories, then data
 # will be stored in all named directories, typically on different devices.
 # Directories that do not exist are ignored.
-default[:hadoop][:hdfs][:dfs_data_dir] = "${hadoop.tmp.dir}/dfs/data"
+# DEFAULT: ${hadoop.tmp.dir}/dfs/data. 
+default[:hadoop][:hdfs][:dfs_data_dir] = "/tmp/hadoop-crowbar/dfs/data"
 
 # The address where the datanode server will listen to. If the port is 0
 # then the server will start on a free port.
@@ -100,7 +101,6 @@ default[:hadoop][:hdfs][:dfs_datanode_handler_count] = "3"
 # server will start on a free port.
 default[:hadoop][:hdfs][:dfs_datanode_http_address] = "0.0.0.0:50075"
 
-
 default[:hadoop][:hdfs][:dfs_datanode_https_address] = "0.0.0.0:50475"
 
 # The datanode ipc server address and port. If the port is 0 then the
@@ -129,8 +129,6 @@ default[:hadoop][:hdfs][:dfs_hosts_exclude] = ""
 # The address and the base port where the dfs namenode web ui will listen
 # on. If the port is 0 then the server will start on a free port.
 default[:hadoop][:hdfs][:dfs_http_address] = "0.0.0.0:50070"
-
-
 default[:hadoop][:hdfs][:dfs_https_address] = "0.0.0.0:50470"
 
 # Resource file from which ssl client keystore information will be
@@ -155,13 +153,15 @@ default[:hadoop][:hdfs][:dfs_max_objects] = ""
 # the name table(fsimage). If this is a comma-delimited list of directories
 # then the name table is replicated in all of the directories, for
 # redundancy.
-default[:hadoop][:hdfs][:dfs_name_dir] = [ "${hadoop.tmp.dir}/dfs/name" ]
+# DEFAULT: ${hadoop.tmp.dir}/dfs/name.
+default[:hadoop][:hdfs][:dfs_name_dir] = [ "/tmp/hadoop-crowbar/dfs/name" ]
 
 # Determines where on the local filesystem the DFS name node should store
 # the transaction (edits) file. If this is a comma-delimited list of
 # directories then the transaction file is replicated in all of the
 # directories, for redundancy. Default value is same as dfs.name.dir.
-default[:hadoop][:hdfs][:dfs_name_edits_dir] = [ "${dfs.name.dir}" ]
+# DEFAULT: [ "${dfs.name.dir}" ]
+default[:hadoop][:hdfs][:dfs_name_edits_dir] = [ "/tmp/hadoop-crowbar/dfs/name" ]
 
 # Namenode periodicity in seconds to check if decommission is complete.
 default[:hadoop][:hdfs][:dfs_namenode_decommission_interval] = "30"

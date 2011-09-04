@@ -30,8 +30,9 @@ default[:hadoop][:core][:fs_checkpoint_dir] = [ "/tmp/hadoop-metadata" ]
 # Determines where on the local filesystem the DFS secondary name node
 # should store the temporary edits to merge. If this is a comma-delimited
 # list of directoires then teh edits is replicated in all of the
-# directoires for redundancy. Default value is same as fs.checkpoint.dir.
-default[:hadoop][:core][:fs_checkpoint_edits_dir] = [ "${fs.checkpoint.dir}" ]
+# directoires for redundancy.
+# DEFAULT: ${fs.checkpoint.dir}
+default[:hadoop][:core][:fs_checkpoint_edits_dir] = [ "/tmp/hadoop-metadata" ]
 
 # The number of seconds between two periodic checkpoints.
 default[:hadoop][:core][:fs_checkpoint_period] = "3600"
@@ -61,11 +62,7 @@ default[:hadoop][:core][:fs_har_impl_disable_cache] = "true"
 
 # The FileSystem for hdfs: uris.
 default[:hadoop][:core][:fs_hdfs_impl] = "org.apache.hadoop.hdfs.DistributedFileSystem"
-
-
 default[:hadoop][:core][:fs_hftp_impl] = "org.apache.hadoop.hdfs.HftpFileSystem"
-
-
 default[:hadoop][:core][:fs_hsftp_impl] = "org.apache.hadoop.hdfs.HsftpFileSystem"
 
 # The FileSystem for kfs: uris.
@@ -79,7 +76,8 @@ default[:hadoop][:core][:fs_s3_block_size] = "67108864"
 
 # Determines where on the local filesystem the S3 filesystem should store
 # files before sending them to S3 (or after retrieving them from S3).
-default[:hadoop][:core][:fs_s3_buffer_dir] = "${hadoop.tmp.dir}/s3"
+# DEFAULT: "${hadoop.tmp.dir}/s3"
+default[:hadoop][:core][:fs_s3_buffer_dir] = "/tmp/hadoop-crowbar/s3"
 
 # The FileSystem for s3: uris.
 default[:hadoop][:core][:fs_s3_impl] = "org.apache.hadoop.fs.s3.S3FileSystem"
@@ -141,7 +139,8 @@ default[:hadoop][:core][:hadoop_security_uid_cache_secs] = "14400"
 default[:hadoop][:core][:hadoop_socks_server] = ""
 
 # A base for other temporary directories.
-default[:hadoop][:core][:hadoop_tmp_dir] = "/tmp/hadoop-${user.name}"
+# DEFAULT: "/tmp/hadoop-${user.name}"
+default[:hadoop][:core][:hadoop_tmp_dir] = "/tmp/hadoop-crowbar"
 
 # The default implementation of Hash. Currently this can take one of the
 # two values: 'murmur' to select MurmurHash and 'jenkins' to select

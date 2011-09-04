@@ -30,6 +30,11 @@ default[:hadoop][:debug] = true
 default[:hadoop][:cloudera_enterprise_scm] = false
 
 default[:hadoop][:cluster] = {}
+
 default[:hadoop][:cluster][:node_type] = ""
-default[:hadoop][:cluster][:masters] = []
-default[:hadoop][:cluster][:slaves] = []
+
+default[:hadoop][:cluster][:master_name_nodes] = [ ]
+default[:hadoop][:cluster][:secondary_name_nodes] = [ ]
+default[:hadoop][:cluster][:edge_nodes] = [ ]
+default[:hadoop][:cluster][:slave_nodes] = [ ]
+

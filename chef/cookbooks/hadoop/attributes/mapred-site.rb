@@ -22,8 +22,9 @@
 #######################################################################
 
 # If job tracker is static the history files are stored in this single well
-# known place. If No value is set here, by default, it is in the local file
-# system at ${hadoop.log.dir}/history.
+# known place. If No value is set it is in the local file system at
+# ${hadoop.log.dir}/history.
+# DEFAULT: ${hadoop.log.dir}/history
 default[:hadoop][:mapred][:hadoop_job_history_location] = ""
 
 # User can specify a location to store the history files of a particular
@@ -248,6 +249,7 @@ default[:hadoop][:mapred][:mapred_job_tracker_handler_count] = "10"
 # The completed job history files are stored at this single well known
 # location. If nothing is specified, the files are stored at
 # ${hadoop.job.history.location}/done.
+# DEFAULT: ${hadoop.job.history.location}/done
 default[:hadoop][:mapred][:mapred_job_tracker_history_completed_location] = ""
 
 # The job tracker http server address and port the server will listen on.
@@ -320,7 +322,8 @@ default[:hadoop][:mapred][:mapred_line_input_format_linespermap] = "1"
 # The local directory where MapReduce stores intermediate data files. May
 # be a comma-separated list of directories on different devices in order to
 # spread disk I/O. Directories that do not exist are ignored.
-default[:hadoop][:mapred][:mapred_local_dir] = [ "${hadoop.tmp.dir}/mapred/local" ]
+# DEFAULT: "${hadoop.tmp.dir}/mapred/local"  
+default[:hadoop][:mapred][:mapred_local_dir] = [ "/tmp/hadoop-crowbar/mapred/local" ]
 
 # If the space in mapred.local.dir drops under this, do not ask more tasks
 # until all the current ones have finished and cleaned up. Also, to save
@@ -556,7 +559,8 @@ default[:hadoop][:mapred][:mapred_tasktracker_taskmemorymanager_monitoring_inter
 default[:hadoop][:mapred][:mapred_tasktracker_tasks_sleeptime_before_sigkill] = "5000"
 
 # A shared directory for temporary files.
-default[:hadoop][:mapred][:mapred_temp_dir] = "${hadoop.tmp.dir}/mapred/temp"
+# DEFAULT : ${hadoop.tmp.dir}/mapred/temp
+default[:hadoop][:mapred][:mapred_temp_dir] = "/tmp/hadoop-crowbar/mapred/temp"
 
 # The maximum allowed size of the user jobconf. The default is set to 5 MB.
 default[:hadoop][:mapred][:mapred_user_jobconf_limit] = "5242880"
@@ -630,7 +634,8 @@ default[:hadoop][:mapred][:mapreduce_job_split_metainfo_maxsize] = "10000000"
 # The root of the staging area for users' job files In practice, this
 # should be the directory where users' home directories are located
 # (usually /user).
-default[:hadoop][:mapred][:mapreduce_jobtracker_staging_root_dir] = "${hadoop.tmp.dir}/mapred/staging"
+# DEFAULT: ${hadoop.tmp.dir}/mapred/staging
+default[:hadoop][:mapred][:mapreduce_jobtracker_staging_root_dir] = "/tmp/hadoop-crowbar/mapred/staging"
 
 # The limit on the input size of the reduce. If the estimated input size of
 # the reduce is greater than this value, job is failed. A value of -1 means
