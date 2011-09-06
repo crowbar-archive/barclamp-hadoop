@@ -1,5 +1,5 @@
 {
-  "description": "Installs and configures the hadoop cluster component (HDFS/Map Reduce)",
+  "description": "Installs, configures and maintains the Hadoop cluster component (HDFS/Map Reduce)",
   "recipes": {
     "hadoop::default": "Installs hadoop base libraries and configuration.",
     "hadoop::jobtracker": "Installs the job tracker package.",
@@ -21,10 +21,10 @@
   },
   "attributes": {
   },
-  "maintainer": "",
+  "maintainer": "Paul_Webster@Dell.com",
   "replacing": {
   },
-  "license": "All rights reserved",
+  "license": "Apache 2.0 License, Copyright (c) 2011 Dell Inc. - http://www.apache.org/licenses/LICENSE-2.0",
   "maintainer_email": "",
   "groupings": {
   },

@@ -70,7 +70,7 @@ class HadoopService < ServiceObject
     base["deployment"]["hadoop"]["elements"]["hadoop-edgenode"] = edge if edge && !edge.empty?  
     base["deployment"]["hadoop"]["elements"]["hadoop-slavenode"] = slaves if slaves && !slaves.empty?   
     
-    # @logger.debug("hadoop #{base.to_json}")
+    # @logger.debug("hadoop create_proposal: #{base.to_json}")
     @logger.debug("hadoop create_proposal: exiting")
     base
   end
