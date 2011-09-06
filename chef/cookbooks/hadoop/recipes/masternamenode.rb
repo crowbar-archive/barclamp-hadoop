@@ -40,8 +40,8 @@ end
 
 # Configure DFS host exclusion.
 template "/etc/hadoop/conf/dfs.hosts.exclude" do
-  owner "root"
-  group "hadoop"
+  owner node[:hadoop][:cluster][:process_file_system_owner]
+  group node[:hadoop][:cluster][:global_file_system_group]
   mode "0644"
   source "dfs.hosts.exclude.erb"
 end
@@ -49,18 +49,19 @@ end
 # Configure the disks
 include_recipe 'hadoop::configure-disks'
 
+=begin
 # Ensure that the dfs_name_dir directories exists and have the correct permissions.
 node[:hadoop][:hdfs][:dfs_name_dir].each do |dfs_name_dir|
   Chef::Log.info("mkdir #{dfs_name_dir}") if debug
   directory dfs_name_dir do
-    owner "hdfs"
-    group "hadoop"
+    owner node[:hadoop][:cluster][:hdfs_file_system_owner]
+    group node[:hadoop][:cluster][:global_file_system_group]
     mode "0755"
     recursive true
     action :create
-    not_if "test -d #{dfs_name_dir}"
   end
 end
+=end
 
 # Start the namenode services.
 service "hadoop-0.20-namenode" do

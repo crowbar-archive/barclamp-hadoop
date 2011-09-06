@@ -23,11 +23,12 @@
 debug = node[:hadoop][:debug]
 Chef::Log.info("BEGIN hadoop:configure-disks") if debug
 
+=begin
 # Configure the hadoop disks.
 cookbook_file "/tmp/configure-disks.sh" do
   source "configure-disks.sh"
-  owner "root"
-  group "root"
+  owner node[:hadoop][:cluster][:process_file_system_owner]
+  group node[:hadoop][:cluster][:global_file_system_group]
   backup false
   mode "0755"
 end
@@ -36,6 +37,7 @@ execute "configure-disks" do
   command "/tmp/configure-disks.sh"
   action :run
 end
+=end
 
 # Check the :dfs_name_dir configuration. Data partitions are numbered 
 # 1-N (i.e. /mnt/hdfs/hdfs01/data1 - /mnt/hdfs/hdfs01/dataN).  
@@ -70,29 +72,17 @@ end
 # exec 'hadoop namenode -format'.
 # You can't be root (or you need to specify HADOOP_NAMENODE_USER).
 #######################################################################
+
 dfs_image_dir = "#{hb}/data1/image"
-dfs_namenode_user = node[:hadoop][:hdfs][:dfs_namenode_user]
+hdfs_file_system_owner = node[:hadoop][:cluster][:hdfs_file_system_owner]
 
 if (!File.exists?("#{hb}/data1/image")) 
-  
-  # Ensure that the parent directory exists
-  dfs_name_dir = "#{hb}/data1"
-  Chef::Log.info("mkdir #{dfs_name_dir}") if debug
-  directory dfs_name_dir do
-    owner "hdfs"
-    group "hadoop"
-    mode "0755"
-    recursive true
-    action :create
-    not_if "test -d #{dfs_name_dir}"
-  end
-  
   # run HDFS format 
-  Chef::Log.info("echo 'Y' | hadoop namenode -format #{dfs_namenode_user}") if debug
+  Chef::Log.info("echo 'Y' | hadoop namenode -format #{hdfs_file_system_owner}") if debug
   
   # HDFS cannot run as root, so override the process owner
   execute "hdfs_format" do
-    user dfs_namenode_user
+    user hdfs_file_system_owner
     command "echo 'Y' | hadoop namenode -format"
   end
 else 

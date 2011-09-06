@@ -49,8 +49,8 @@ include_recipe 'hadoop::configure-disks'
 # Setup the DFS data directory. 
 node[:hadoop][:hdfs][:dfs_data_dir].each do |dataDir|
   directory dataDir do
-    owner "hdfs"
-    group "hadoop"
+    owner node[:hadoop][:cluster][:hdfs_file_system_owner]
+    group node[:hadoop][:cluster][:global_file_system_group]
     mode "0755"
     recursive true
     action :create
@@ -60,8 +60,8 @@ end
 # Setup the MAP/REDUCE local directory. 
 node[:hadoop][:mapred][:mapred_local_dir].each do |localDir|
   directory localDir do
-    owner "mapred"
-    group "hadoop"
+    owner node[:hadoop][:cluster][:mapred_file_system_owner]
+    group node[:hadoop][:cluster][:global_file_system_group]
     mode "0755"
     recursive true
     action :create

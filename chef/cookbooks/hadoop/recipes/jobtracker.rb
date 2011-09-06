@@ -30,8 +30,8 @@ end
 
 # Setup the fair scheduler.
 template "/etc/hadoop/conf/fair-scheduler.xml" do
-  owner "root"
-  group "hadoop"
+  owner node[:hadoop][:cluster][:process_file_system_owner]
+  group node[:hadoop][:cluster][:global_file_system_group]
   mode "0644"
   source "fair-scheduler.xml.erb"
 end
@@ -39,11 +39,11 @@ end
 # Configure the disks.
 include_recipe 'hadoop::configure-disks'
 
-# Ensure that the mapred_local_dir directories exists and have the correct permissions.
+# Make sure the mapred_local_dir directories exist.
 node[:hadoop][:mapred][:mapred_local_dir].each do |localDir|
   directory localDir do
-    owner "mapred"
-    group "hadoop"
+    owner node[:hadoop][:cluster][:mapred_file_system_owner]
+    group node[:hadoop][:cluster][:global_file_system_group]
     mode "0755"
     recursive true
     action :create

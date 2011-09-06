@@ -18,6 +18,10 @@
 #
 
 #######################################################################
+# Crowbar internal parameters (non proposal configurable).
+#######################################################################
+
+#######################################################################
 # Site specific MAP/REDUCE settings (/etc/hadoop/conf/mapred-site.xml).
 #######################################################################
 
@@ -323,7 +327,7 @@ default[:hadoop][:mapred][:mapred_line_input_format_linespermap] = "1"
 # be a comma-separated list of directories on different devices in order to
 # spread disk I/O. Directories that do not exist are ignored.
 # DEFAULT: "${hadoop.tmp.dir}/mapred/local"  
-default[:hadoop][:mapred][:mapred_local_dir] = [ "/tmp/hadoop-crowbar/mapred/local" ]
+default[:hadoop][:mapred][:mapred_local_dir] = [ "/var/lib/hadoop-0.20/cache/mapred/mapred/local" ]
 
 # If the space in mapred.local.dir drops under this, do not ask more tasks
 # until all the current ones have finished and cleaned up. Also, to save
@@ -481,8 +485,8 @@ default[:hadoop][:mapred][:mapred_skip_reduce_max_skip_groups] = ""
 # square root of the number of nodes.
 default[:hadoop][:mapred][:mapred_submit_replication] = "10"
 
-# The directory where MapReduce stores control files.
-default[:hadoop][:mapred][:mapred_system_dir] = "${hadoop.tmp.dir}/mapred/system"
+# The directory where MapReduce stores control files (/mapred/system).
+default[:hadoop][:mapred][:mapred_system_dir] = "/mapred/system"
 
 # This is the max level of the task cache. For example, if the level is 2,
 # the tasks cached are at the host level and at the rack level.
@@ -560,7 +564,7 @@ default[:hadoop][:mapred][:mapred_tasktracker_tasks_sleeptime_before_sigkill] = 
 
 # A shared directory for temporary files.
 # DEFAULT : ${hadoop.tmp.dir}/mapred/temp
-default[:hadoop][:mapred][:mapred_temp_dir] = "/tmp/hadoop-crowbar/mapred/temp"
+default[:hadoop][:mapred][:mapred_temp_dir] = "/mnt/hdfs/hdfs01/data1/mapred/temp"
 
 # The maximum allowed size of the user jobconf. The default is set to 5 MB.
 default[:hadoop][:mapred][:mapred_user_jobconf_limit] = "5242880"
@@ -635,7 +639,7 @@ default[:hadoop][:mapred][:mapreduce_job_split_metainfo_maxsize] = "10000000"
 # should be the directory where users' home directories are located
 # (usually /user).
 # DEFAULT: ${hadoop.tmp.dir}/mapred/staging
-default[:hadoop][:mapred][:mapreduce_jobtracker_staging_root_dir] = "/tmp/hadoop-crowbar/mapred/staging"
+default[:hadoop][:mapred][:mapreduce_jobtracker_staging_root_dir] = "/mnt/hdfs/hdfs01/data1/mapred/staging"
 
 # The limit on the input size of the reduce. If the estimated input size of
 # the reduce is greater than this value, job is failed. A value of -1 means

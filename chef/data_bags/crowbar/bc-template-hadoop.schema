@@ -93,6 +93,7 @@
                 "hadoop_datanode_opts": { "type": "str", "required": false},
                 "hadoop_heapsize": { "type": "str", "required": true},
                 "hadoop_jobtracker_opts": { "type": "str", "required": false},
+                "hadoop_balancer_opts": { "type": "str", "required": false},
                 "hadoop_log_dir": { "type": "str", "required": true},
                 "hadoop_namenode_opts": { "type": "str", "required": false},
                 "hadoop_secondarynamenode_opts": { "type": "str", "required": false},

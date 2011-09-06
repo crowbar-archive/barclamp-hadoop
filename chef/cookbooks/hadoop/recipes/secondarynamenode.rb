@@ -30,12 +30,11 @@ node.save
 # Make sure the dfs name secondary directory exists. 
 dfs_name_secondary = "/var/lib/hadoop-0.20/dfs/namesecondary"
 directory dfs_name_secondary do
-  owner "hdfs"
-  group "hadoop"
+  owner node[:hadoop][:cluster][:hdfs_file_system_owner]
+  group node[:hadoop][:cluster][:global_file_system_group]
   mode "0755"
   recursive true
   action :create
-  not_if "test -d #{dfs_name_secondary}"
 end
 
 # Install the secondary name node service.
@@ -47,12 +46,11 @@ end
 node[:hadoop][:core][:fs_checkpoint_dir].each do |fs_checkpoint_dir|
   Chef::Log.info("mkdir #{fs_checkpoint_dir}") if debug
   directory fs_checkpoint_dir do
-    owner "hdfs"
-    group "hadoop"
+    owner node[:hadoop][:cluster][:hdfs_file_system_owner]
+    group node[:hadoop][:cluster][:global_file_system_group]
     mode "0755"
     recursive true
     action :create
-    not_if "test -d #{fs_checkpoint_dir}"
   end
 end
 
