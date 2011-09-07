@@ -47,7 +47,7 @@ default[:hadoop][:hdfs][:dfs_block_access_token_enable] = "false"
 default[:hadoop][:hdfs][:dfs_block_access_token_lifetime] = "600"
 
 # The default block size for new files.
-default[:hadoop][:hdfs][:dfs_block_size] = "67108864"
+default[:hadoop][:hdfs][:dfs_block_size] = "134217728"
 
 # Delay for first block report in seconds.
 default[:hadoop][:hdfs][:dfs_blockreport_initialDelay] = ""
@@ -86,7 +86,7 @@ default[:hadoop][:hdfs][:dfs_datanode_dns_nameserver] = "default"
 
 # Reserved space in bytes per volume. Always leave this much space free for
 # non dfs use.
-default[:hadoop][:hdfs][:dfs_datanode_du_reserved] = ""
+default[:hadoop][:hdfs][:dfs_datanode_du_reserved] = "10737418240"
 
 # The number of volumes that are allowed to fail before a datanode stops
 # offering service. By default any volume failure will cause a datanode to
@@ -94,7 +94,7 @@ default[:hadoop][:hdfs][:dfs_datanode_du_reserved] = ""
 default[:hadoop][:hdfs][:dfs_datanode_failed_volumes_tolerated] = ""
 
 # The number of server threads for the datanode.
-default[:hadoop][:hdfs][:dfs_datanode_handler_count] = "3"
+default[:hadoop][:hdfs][:dfs_datanode_handler_count] = "16"
 
 # The datanode http server address and port. If the port is 0 then the
 # server will start on a free port.
@@ -181,7 +181,7 @@ default[:hadoop][:hdfs][:dfs_namenode_delegation_token_max_lifetime] = "60480000
 default[:hadoop][:hdfs][:dfs_namenode_delegation_token_renew_interval] = "86400000"
 
 # The number of server threads for the namenode.
-default[:hadoop][:hdfs][:dfs_namenode_handler_count] = "10"
+default[:hadoop][:hdfs][:dfs_namenode_handler_count] = "32"
 
 # The logging level for dfs namenode. Other values are "dir"(trace
 # namespace mutations), "block"(trace block under/over replications and

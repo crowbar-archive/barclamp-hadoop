@@ -261,7 +261,7 @@ end
 template "/etc/hadoop/conf/hadoop-env.sh" do
   owner node[:hadoop][:cluster][:process_file_system_owner]
   group node[:hadoop][:cluster][:global_file_system_group]
-  mode "0644"
+  mode "0755"
   source "hadoop-env.sh.erb"
   notifies :restart, resources(:service => "hadoop-0.20-datanode")
   notifies :restart, resources(:service => "hadoop-0.20-tasktracker")

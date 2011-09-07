@@ -30,20 +30,20 @@ default[:hadoop][:env][:hadoop_datanode_opts] = ""
 default[:hadoop][:env][:hadoop_heapsize] = "1000"
 
 # Command line configuration options for the jobtracker.
-default[:hadoop][:env][:hadoop_jobtracker_opts] = ""
+default[:hadoop][:env][:hadoop_jobtracker_opts] = "-Xmx2048m"
 
 # Command line configuration options for the balancer.
-default[:hadoop][:env][:hadoop_balancer_opts] = ""
+default[:hadoop][:env][:hadoop_balancer_opts] = "-Xmx2048m"
 
 # The directory where the daemons log files are stored. They are
 # automatically created if they don't already exist.
 default[:hadoop][:env][:hadoop_log_dir] = "/var/log/hadoop"
 
 # Command line configuration options for the primary name node.
-default[:hadoop][:env][:hadoop_namenode_opts] = ""
+default[:hadoop][:env][:hadoop_namenode_opts] = "-Xmx2048m"
 
 # Command line configuration options for the secondary name node.
-default[:hadoop][:env][:hadoop_secondarynamenode_opts] = ""
+default[:hadoop][:env][:hadoop_secondarynamenode_opts] = "-Xmx2048m"
 
 # Command line configuration options for the tasktracker.
-default[:hadoop][:env][:hadoop_tasktracker_opts] = ""
+default[:hadoop][:env][:hadoop_tasktracker_opts] = "-Xmx2048m"

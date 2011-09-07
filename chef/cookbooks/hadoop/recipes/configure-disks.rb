@@ -39,30 +39,29 @@ execute "configure-disks" do
 end
 =end
 
-# Check the :dfs_name_dir configuration. Data partitions are numbered 
-# 1-N (i.e. /mnt/hdfs/hdfs01/data1 - /mnt/hdfs/hdfs01/dataN).  
+# Check the dfs_name_dir configuration. Data partitions are numbered 
+# 1-N (i.e. /mnt/hdfs/hdfs01/meta1 - /mnt/hdfs/hdfs01/metaN).  
 new_array = []
-cur_array = node[:hadoop][:hdfs][:dfs_name_dir]
 dfs_base_dir = node[:hadoop][:hdfs][:dfs_base_dir]  
 hb = "#{dfs_base_dir}/hdfs01"
-if File.exist?("#{hb}/data6")
-  new_array = ["#{hb}/data1", "#{hb}/data2", "#{hb}/data3", "#{hb}/data4", "#{hb}/data5", "#{hb}/data6" ] 
-elsif File.exist?("#{hb}/data5")
-  new_array = [ "#{hb}/data1", "#{hb}/data2", "#{hb}/data3", "#{hb}/data4", "#{hb}/data5" ] 
-elsif File.exist?("#{hb}/data4")
-  new_array = [ "#{hb}/data1", "#{hb}/data2", "#{hb}/data3", "#{hb}/data4" ]
-elsif File.exist?("#{hb}/data3")
-  new_array = [ "#{hb}/data1", "#{hb}/data2", "#{hb}/data3" ]
-elsif File.exist?("#{hb}/data2")
-  new_array = [ "#{hb}/data1", "#{hb}/data2" ]
-elsif File.exist?("#{hb}/data1")
-  new_array = [ "#{hb}/data1" ]
+if File.exist?("#{hb}/meta6")
+  new_array = ["#{hb}/meta1", "#{hb}/meta2", "#{hb}/meta3", "#{hb}/meta4", "#{hb}/meta5", "#{hb}/meta6" ] 
+elsif File.exist?("#{hb}/meta5")
+  new_array = [ "#{hb}/meta1", "#{hb}/meta2", "#{hb}/meta3", "#{hb}/meta4", "#{hb}/meta5" ] 
+elsif File.exist?("#{hb}/meta4")
+  new_array = [ "#{hb}/meta1", "#{hb}/meta2", "#{hb}/meta3", "#{hb}/meta4" ]
+elsif File.exist?("#{hb}/meta3")
+  new_array = [ "#{hb}/meta1", "#{hb}/meta2", "#{hb}/meta3" ]
+elsif File.exist?("#{hb}/meta2")
+  new_array = [ "#{hb}/meta1", "#{hb}/meta2" ]
+elsif File.exist?("#{hb}/meta1")
+  new_array = [ "#{hb}/meta1" ]
 else
-  new_array = [ "#{hb}/data1" ]
+  new_array = [ "#{hb}/meta1" ]
 end
 
 # Update dfs_name_dir if changes have been detected.
-if (!new_array.nil? && new_array.length > 0 && new_array != cur_array)
+if !new_array.nil? && new_array.length > 0
   node.set[:hadoop][:hdfs][:dfs_name_dir] = new_array
   node.save
 end
@@ -73,10 +72,10 @@ end
 # You can't be root (or you need to specify HADOOP_NAMENODE_USER).
 #######################################################################
 
-dfs_image_dir = "#{hb}/data1/image"
+dfs_image_dir = "#{hb}/meta1/image"
 hdfs_file_system_owner = node[:hadoop][:cluster][:hdfs_file_system_owner]
 
-if (!File.exists?("#{hb}/data1/image")) 
+if (!File.exists?("#{hb}/meta1/image")) 
   # run HDFS format 
   Chef::Log.info("echo 'Y' | hadoop namenode -format #{hdfs_file_system_owner}") if debug
   

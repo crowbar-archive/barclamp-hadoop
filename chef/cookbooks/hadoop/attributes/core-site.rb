@@ -94,7 +94,7 @@ default[:hadoop][:core][:fs_s3n_impl] = "org.apache.hadoop.fs.s3native.NativeS3F
 
 # Number of minutes between trash checkpoints. If zero, the trash feature
 # is disabled.
-default[:hadoop][:core][:fs_trash_interval] = ""
+default[:hadoop][:core][:fs_trash_interval] = "1440"
 
 # A comma separated list of class names. Each class in the list must extend
 # org.apache.hadoop.http.FilterInitializer. The corresponding Filter will
@@ -159,7 +159,7 @@ default[:hadoop][:core][:io_compression_codecs] = "org.apache.hadoop.io.compress
 # should probably be a multiple of hardware page size (4096 on Intel x86),
 # and it determines how much data is buffered during read and write
 # operations.
-default[:hadoop][:core][:io_file_buffer_size] = "4096"
+default[:hadoop][:core][:io_file_buffer_size] = "65536"
 
 # The rate of false positives in BloomFilter-s used in BloomMapFile. As
 # this value decreases, the size of BloomFilter-s increases exponentially.

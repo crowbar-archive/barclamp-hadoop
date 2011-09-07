@@ -48,12 +48,12 @@ default[:hadoop][:mapred][:io_map_index_skip] = ""
 
 # The number of streams to merge at once while sorting files. This
 # determines the number of open file handles.
-default[:hadoop][:mapred][:io_sort_factor] = "10"
+default[:hadoop][:mapred][:io_sort_factor] = "80"
 
 # The total amount of buffer memory to use while sorting files, in
 # megabytes. By default, gives each merge stream 1MB, which should minimize
 # seeks.
-default[:hadoop][:mapred][:io_sort_mb] = "100"
+default[:hadoop][:mapred][:io_sort_mb] = "512"
 
 # The percentage of io.sort.mb dedicated to tracking record boundaries. Let
 # this value be r, io.sort.mb be x. The maximum number of records collected
@@ -109,7 +109,7 @@ default[:hadoop][:mapred][:mapred_child_env] = ""
 # heap maximum to be a gigabyte, pass a 'value' of: -Xmx1024m -verbose:gc
 # -Xloggc:/tmp/@taskid@.gc The configuration variable mapred.child.ulimit
 # can be used to control the maximum virtual memory of the child processes.
-default[:hadoop][:mapred][:mapred_child_java_opts] = "-Xmx200m"
+default[:hadoop][:mapred][:mapred_child_java_opts] = "-Xmx1024m"
 
 # To set the value of tmp directory for map and reduce tasks. If the value
 # is an absolute path, it is directly assigned. Otherwise, it is prepended
@@ -126,7 +126,7 @@ default[:hadoop][:mapred][:mapred_child_tmp] = "./tmp"
 # limits.conf and other such relevant mechanisms. Note: mapred.child.ulimit
 # must be greater than or equal to the -Xmx passed to JavaVM, else the VM
 # might not start.
-default[:hadoop][:mapred][:mapred_child_ulimit] = ""
+default[:hadoop][:mapred][:mapred_child_ulimit] = "2097152"
 
 # The size, in terms of virtual memory, of a single map slot in the
 # Map-Reduce framework, used by the scheduler. A job can ask for multiple
@@ -248,7 +248,7 @@ default[:hadoop][:mapred][:mapred_job_tracker] = "local"
 
 # The number of server threads for the JobTracker. This should be roughly
 # 4% of the number of tasktracker nodes.
-default[:hadoop][:mapred][:mapred_job_tracker_handler_count] = "10"
+default[:hadoop][:mapred][:mapred_job_tracker_handler_count] = "32"
 
 # The completed job history files are stored at this single well known
 # location. If nothing is specified, the files are stored at
@@ -354,7 +354,7 @@ default[:hadoop][:mapred][:mapred_map_tasks] = "2"
 
 # If true, then multiple instances of some map tasks may be executed in
 # parallel.
-default[:hadoop][:mapred][:mapred_map_tasks_speculative_execution] = "true"
+default[:hadoop][:mapred][:mapred_map_tasks_speculative_execution] = "false"
 
 # The number of blacklists for a tasktracker by various jobs after which
 # the tasktracker will be marked as potentially faulty and is a candidate
@@ -428,11 +428,11 @@ default[:hadoop][:mapred][:mapred_reduce_slowstart_completed_maps] = "0.05"
 # The default number of reduce tasks per job. Typically set to 99% of the
 # cluster's reduce capacity, so that if a node fails the reduces can still
 # be executed in a single wave. Ignored when mapred.job.tracker is "local".
-default[:hadoop][:mapred][:mapred_reduce_tasks] = "1"
+default[:hadoop][:mapred][:mapred_reduce_tasks] = "6"
 
 # If true, then multiple instances of some reduce tasks may be executed in
 # parallel.
-default[:hadoop][:mapred][:mapred_reduce_tasks_speculative_execution] = "true"
+default[:hadoop][:mapred][:mapred_reduce_tasks_speculative_execution] = "false"
 
 # The number of Task attempts AFTER which skip mode will be kicked off.
 # When skip mode is kicked off, the tasks reports the range of records
@@ -540,7 +540,6 @@ default[:hadoop][:mapred][:mapred_tasktracker_indexcache_mb] = "10"
 
 # The maximum number of map tasks that will be run simultaneously by a task
 # tracker.
-default[:hadoop][:mapred][:mapred_tasktracker_map_tasks_maximum] = "2"
 
 # Name of the class whose instance will be used to query memory information
 # on the tasktracker. The class must be an instance of
@@ -551,7 +550,7 @@ default[:hadoop][:mapred][:mapred_tasktracker_memory_calculator_plugin] = ""
 
 # The maximum number of reduce tasks that will be run simultaneously by a
 # task tracker.
-default[:hadoop][:mapred][:mapred_tasktracker_reduce_tasks_maximum] = "2"
+default[:hadoop][:mapred][:mapred_tasktracker_reduce_tasks_maximum] = "6"
 
 # The interval, in milliseconds, for which the tasktracker waits between
 # two cycles of monitoring its tasks' memory usage. Used only if tasks'
