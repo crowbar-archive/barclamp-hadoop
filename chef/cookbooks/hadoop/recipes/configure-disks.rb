@@ -76,14 +76,34 @@ dfs_image_dir = "#{hb}/meta1/image"
 hdfs_file_system_owner = node[:hadoop][:cluster][:hdfs_file_system_owner]
 
 if (!File.exists?("#{hb}/meta1/image")) 
-  # run HDFS format 
-  Chef::Log.info("echo 'Y' | hadoop namenode -format #{hdfs_file_system_owner}") if debug
-  
-  # HDFS cannot run as root, so override the process owner
+  # Format HDFS. 
+  # HDFS cannot run as root, so override the process owner (hdfs).
+  cmd = "echo 'Y' | hadoop namenode -format"
+  Chef::Log.info("#{cmd} #{hdfs_file_system_owner}") if debug
   execute "hdfs_format" do
     user hdfs_file_system_owner
-    command "echo 'Y' | hadoop namenode -format"
+    command cmd
+    returns [0, 1, 255]
   end
+  
+  # Create the mapred system directory
+  cmd = "hadoop fs -mkdir /mapred/system"
+  Chef::Log.info("#{cmd} #{hdfs_file_system_owner}") if debug
+  execute "hdfs_make_sys_dir" do
+    user hdfs_file_system_owner
+    command cmd
+    returns [0, 1, 255]
+  end
+  
+  # Create the mapred system directory permissions
+  cmd = "hadoop fs -chown mapred:hadoop /mapred/system"
+  Chef::Log.info("#{cmd} #{hdfs_file_system_owner}") if debug
+  execute "hdfs_set_sys_dir_perms" do
+    user hdfs_file_system_owner
+    command cmd
+    returns [0, 1, 255]
+  end
+  
 else 
   Chef::Log.info("skipping hdfs format") if debug
 end
