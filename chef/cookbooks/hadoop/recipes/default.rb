@@ -48,10 +48,12 @@ end
 
 # Find the master name nodes (there should only be one). 
 master_name_nodes = Array.new
+master_name_node_objects = Array.new
 search(:node, "roles:hadoop-masternamenode#{env_filter}") do |nmas|
   if !nmas[:fqdn].nil? && !nmas[:fqdn].empty?
     Chef::Log.info("GOT MASTER [#{nmas[:fqdn]}") if debug
     master_name_nodes << nmas[:fqdn]
+    master_name_node_objects << nmas
   end
 end
 node[:hadoop][:cluster][:master_name_nodes] = master_name_nodes
@@ -120,7 +122,10 @@ end
 # Map/Reduce setup
 # mapred.job.tracker needs to be set to the IP of the Master Node running job tracker
 # mapred.job.tracker.http.address needs to also be set to the above IP
-master_node_ip = BarclampLibrary::Barclamp::Inventory.get_network_by_type(node,"admin").address
+master_node_ip = "0.0.0.0"
+if !master_name_node_objects.nil? && master_name_node_objects.length > 0
+  master_node_ip = BarclampLibrary::Barclamp::Inventory.get_network_by_type(master_name_node_objects[0],"admin").address
+end
 Chef::Log.info("master_node_ip #{master_node_ip}") if debug
 
 # The host and port that the MapReduce job tracker runs at. If "local",
