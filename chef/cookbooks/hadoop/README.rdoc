@@ -1,6 +1,9 @@
 = DESCRIPTION:
 
-Installs and configures the baseline hadoop cluster component (HDFS/Map Reduce).
+The common libraries and utilities that provides the basic Hadoop runtime environment (HDFS/Map Reduce).
+A set of components and interfaces which implements a distributed filesystem and
+provides general I/O access for the hadoop framework (serialization, Java RPC and
+persistent data storage). 
 
 = REQUIREMENTS:
 
