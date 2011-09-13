@@ -87,6 +87,14 @@ locale_additions:
         topology_script_file_name: topology_script_file_name
         topology_script_number_args: topology_script_number_args
         webinterface_private_actions: webinterface_private_actions
+        env_attributes: Hadoop Environment Attributes
+        hadoop_datanode_opts: hadoop_datanode_opts
+        hadoop_heapsize: hadoop_heapsize
+        hadoop_jobtracker_opts: hadoop_jobtracker_opts
+        hadoop_log_dir: hadoop_log_dir
+        hadoop_namenode_opts: hadoop_namenode_opts
+        hadoop_secondarynamenode_opts: hadoop_secondarynamenode_opts
+        hadoop_tasktracker_opts: hadoop_tasktracker_opts
         hdfs_attributes: Hadoop HDFS Attributes
         dfs_access_time_precision: dfs_access_time_precision
         dfs_balance_bandwidthPerSec: dfs_balance_bandwidthPerSec
@@ -261,4 +269,10 @@ locale_additions:
         mapreduce_reduce_shuffle_read_timeout: mapreduce_reduce_shuffle_read_timeout
         mapreduce_tasktracker_group: mapreduce_tasktracker_group
         mapreduce_tasktracker_outofband_heartbeat: mapreduce_tasktracker_outofband_heartbeat
-        tasktracker_http_threads: tasktracker_http_threads        
+        tasktracker_http_threads: tasktracker_http_threads    
+        scheduler_attributes: Hadoop Scheduler Attributes
+        default_min_share_preemption_timeout: default_min_share_preemption_timeout
+        default_pool_scheduling_mode: default_pool_scheduling_mode
+        fair_share_preemption_timeout: fair_share_preemption_timeout
+        pool_max_jobs_default: pool_max_jobs_default
+        user_max_jobs_default: user_max_jobs_default   

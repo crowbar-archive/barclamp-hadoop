@@ -39,7 +39,7 @@
 
     %p
       %label{ :for => :fs_har_impl_disable_cache }= t('.fs_har_impl_disable_cache')
-      = select_tag :fs_har_impl_disable_cache, options_for_select([['true','true'], ['false', 'false']], "true"), :onchange => "update_value('fs_har_impl_disable_cache', 'fs_har_impl_disable_cache', 'boolean')"
+      = select_tag :fs_har_impl_disable_cache, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:core]["fs_har_impl_disable_cache"]), :onchange => "update_value('core/fs_har_impl_disable_cache', 'fs_har_impl_disable_cache', 'string')"
 
     %p
       %label{ :for => :fs_hdfs_impl }= t('.fs_hdfs_impl')
@@ -103,7 +103,7 @@
 
     %p
       %label{ :for => :hadoop_native_lib }= t('.hadoop_native_lib')
-      = select_tag :hadoop_native_lib, options_for_select([['true','true'], ['false', 'false']], "true"), :onchange => "update_value('hadoop_native_lib', 'hadoop_native_lib', 'boolean')"
+      = select_tag :hadoop_native_lib, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:core]["hadoop_native_lib"]), :onchange => "update_value('core/hadoop_native_lib', 'hadoop_native_lib', 'string')"
 
     %p
       %label{ :for => :hadoop_rpc_socket_factory_class_ClientProtocol }= t('.hadoop_rpc_socket_factory_class_ClientProtocol')
@@ -119,7 +119,7 @@
 
     %p
       %label{ :for => :hadoop_security_authorization }= t('.hadoop_security_authorization')
-      = select_tag :hadoop_security_authorization, options_for_select([['true','true'], ['false', 'false']], "false"), :onchange => "update_value('hadoop_security_authorization', 'hadoop_security_authorization', 'boolean')"
+      = select_tag :hadoop_security_authorization, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:core]["hadoop_security_authorization"]), :onchange => "update_value('core/hadoop_security_authorization', 'hadoop_security_authorization', 'string')"
 
     %p
       %label{ :for => :hadoop_security_group_mapping }= t('.hadoop_security_group_mapping')
@@ -167,7 +167,7 @@
 
     %p
       %label{ :for => :io_seqfile_lazydecompress }= t('.io_seqfile_lazydecompress')
-      = select_tag :io_seqfile_lazydecompress, options_for_select([['true','true'], ['false', 'false']], "true"), :onchange => "update_value('io_seqfile_lazydecompress', 'io_seqfile_lazydecompress', 'boolean')"
+      = select_tag :io_seqfile_lazydecompress, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:core]["io_seqfile_lazydecompress"]), :onchange => "update_value('core/io_seqfile_lazydecompress', 'io_seqfile_lazydecompress', 'string')"
 
     %p
       %label{ :for => :io_seqfile_sorter_recordlimit }= t('.io_seqfile_sorter_recordlimit')
@@ -179,7 +179,7 @@
 
     %p
       %label{ :for => :io_skip_checksum_errors }= t('.io_skip_checksum_errors')
-      = select_tag :io_skip_checksum_errors, options_for_select([['true','true'], ['false', 'false']], "false"), :onchange => "update_value('io_skip_checksum_errors', 'io_skip_checksum_errors', 'boolean')"
+      = select_tag :io_skip_checksum_errors, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:core]["io_skip_checksum_errors"]), :onchange => "update_value('core/io_skip_checksum_errors', 'io_skip_checksum_errors', 'string')"
 
     %p
       %label{ :for => :ipc_client_connect_max_retries }= t('.ipc_client_connect_max_retries')
@@ -199,7 +199,7 @@
 
     %p
       %label{ :for => :ipc_client_tcpnodelay }= t('.ipc_client_tcpnodelay')
-      = select_tag :ipc_client_tcpnodelay, options_for_select([['true','true'], ['false', 'false']], "false"), :onchange => "update_value('ipc_client_tcpnodelay', 'ipc_client_tcpnodelay', 'boolean')"
+      = select_tag :ipc_client_tcpnodelay, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:core]["ipc_client_tcpnodelay"]), :onchange => "update_value('core/ipc_client_tcpnodelay', 'ipc_client_tcpnodelay', 'string')"
 
     %p
       %label{ :for => :ipc_server_listen_queue_size }= t('.ipc_server_listen_queue_size')
@@ -207,7 +207,7 @@
 
     %p
       %label{ :for => :ipc_server_tcpnodelay }= t('.ipc_server_tcpnodelay')
-      = select_tag :ipc_server_tcpnodelay, options_for_select([['true','true'], ['false', 'false']], "false"), :onchange => "update_value('ipc_server_tcpnodelay', 'ipc_server_tcpnodelay', 'boolean')"
+      = select_tag :ipc_server_tcpnodelay, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:core]["ipc_server_tcpnodelay"]), :onchange => "update_value('core/ipc_server_tcpnodelay', 'ipc_server_tcpnodelay', 'string')"
 
     %p
       %label{ :for => :local_cache_size }= t('.local_cache_size')
@@ -227,7 +227,39 @@
 
     %p
       %label{ :for => :webinterface_private_actions }= t('.webinterface_private_actions')
-      = select_tag :webinterface_private_actions, options_for_select([['true','true'], ['false', 'false']], "false"), :onchange => "update_value('webinterface_private_actions', 'webinterface_private_actions', 'boolean')"
+      = select_tag :webinterface_private_actions, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:core]["webinterface_private_actions"]), :onchange => "update_value('core/webinterface_private_actions', 'webinterface_private_actions', 'string')"
+
+    %p
+    %br
+    %strong= t('.env_attributes')
+
+    %p
+      %label{ :for => :hadoop_datanode_opts }= t('.hadoop_datanode_opts')
+      %input#hadoop_datanode_opts{:type => "text", :name => "hadoop_datanode_opts", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:env]["hadoop_datanode_opts"], :onchange => "update_value('env/hadoop_datanode_opts', 'hadoop_datanode_opts', 'string')"}
+
+    %p
+      %label{ :for => :hadoop_heapsize }= t('.hadoop_heapsize')
+      %input#hadoop_heapsize{:type => "text", :name => "hadoop_heapsize", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:env]["hadoop_heapsize"], :onchange => "update_value('env/hadoop_heapsize', 'hadoop_heapsize', 'string')"}
+
+    %p
+      %label{ :for => :hadoop_jobtracker_opts }= t('.hadoop_jobtracker_opts')
+      %input#hadoop_jobtracker_opts{:type => "text", :name => "hadoop_jobtracker_opts", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:env]["hadoop_jobtracker_opts"], :onchange => "update_value('env/hadoop_jobtracker_opts', 'hadoop_jobtracker_opts', 'string')"}
+
+    %p
+      %label{ :for => :hadoop_log_dir }= t('.hadoop_log_dir')
+      %input#hadoop_log_dir{:type => "text", :name => "hadoop_log_dir", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:env]["hadoop_log_dir"], :onchange => "update_value('env/hadoop_log_dir', 'hadoop_log_dir', 'string')"}
+
+    %p
+      %label{ :for => :hadoop_namenode_opts }= t('.hadoop_namenode_opts')
+      %input#hadoop_namenode_opts{:type => "text", :name => "hadoop_namenode_opts", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:env]["hadoop_namenode_opts"], :onchange => "update_value('env/hadoop_namenode_opts', 'hadoop_namenode_opts', 'string')"}
+
+    %p
+      %label{ :for => :hadoop_secondarynamenode_opts }= t('.hadoop_secondarynamenode_opts')
+      %input#hadoop_secondarynamenode_opts{:type => "text", :name => "hadoop_secondarynamenode_opts", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:env]["hadoop_secondarynamenode_opts"], :onchange => "update_value('env/hadoop_secondarynamenode_opts', 'hadoop_secondarynamenode_opts', 'string')"}
+
+    %p
+      %label{ :for => :hadoop_tasktracker_opts }= t('.hadoop_tasktracker_opts')
+      %input#hadoop_tasktracker_opts{:type => "text", :name => "hadoop_tasktracker_opts", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:env]["hadoop_tasktracker_opts"], :onchange => "update_value('env/hadoop_tasktracker_opts', 'hadoop_tasktracker_opts', 'string')"}
 
     %p
     %br
@@ -247,7 +279,7 @@
 
     %p
       %label{ :for => :dfs_block_access_token_enable }= t('.dfs_block_access_token_enable')
-      = select_tag :dfs_block_access_token_enable, options_for_select([['true','true'], ['false', 'false']], "false"), :onchange => "update_value('dfs_block_access_token_enable', 'dfs_block_access_token_enable', 'boolean')"
+      = select_tag :dfs_block_access_token_enable, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:hdfs]["dfs_block_access_token_enable"]), :onchange => "update_value('hdfs/dfs_block_access_token_enable', 'dfs_block_access_token_enable', 'string')"
 
     %p
       %label{ :for => :dfs_block_access_token_lifetime }= t('.dfs_block_access_token_lifetime')
@@ -347,11 +379,11 @@
 
     %p
       %label{ :for => :dfs_https_enable }= t('.dfs_https_enable')
-      = select_tag :dfs_https_enable, options_for_select([['true','true'], ['false', 'false']], "false"), :onchange => "update_value('dfs_https_enable', 'dfs_https_enable', 'boolean')"
+      = select_tag :dfs_https_enable, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:hdfs]["dfs_https_enable"]), :onchange => "update_value('hdfs/dfs_https_enable', 'dfs_https_enable', 'string')"
 
     %p
       %label{ :for => :dfs_https_need_client_auth }= t('.dfs_https_need_client_auth')
-      = select_tag :dfs_https_need_client_auth, options_for_select([['true','true'], ['false', 'false']], "false"), :onchange => "update_value('dfs_https_need_client_auth', 'dfs_https_need_client_auth', 'boolean')"
+      = select_tag :dfs_https_need_client_auth, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:hdfs]["dfs_https_need_client_auth"]), :onchange => "update_value('hdfs/dfs_https_need_client_auth', 'dfs_https_need_client_auth', 'string')"
 
     %p
       %label{ :for => :dfs_https_server_keystore_resource }= t('.dfs_https_server_keystore_resource')
@@ -399,7 +431,7 @@
 
     %p
       %label{ :for => :dfs_permissions }= t('.dfs_permissions')
-      = select_tag :dfs_permissions, options_for_select([['true','true'], ['false', 'false']], "true"), :onchange => "update_value('dfs_permissions', 'dfs_permissions', 'boolean')"
+      = select_tag :dfs_permissions, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:hdfs]["dfs_permissions"]), :onchange => "update_value('hdfs/dfs_permissions', 'dfs_permissions', 'string')"
 
     %p
       %label{ :for => :dfs_permissions_supergroup }= t('.dfs_permissions_supergroup')
@@ -411,7 +443,7 @@
 
     %p
       %label{ :for => :dfs_replication_considerLoad }= t('.dfs_replication_considerLoad')
-      = select_tag :dfs_replication_considerLoad, options_for_select([['true','true'], ['false', 'false']], "true"), :onchange => "update_value('dfs_replication_considerLoad', 'dfs_replication_considerLoad', 'boolean')"
+      = select_tag :dfs_replication_considerLoad, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:hdfs]["dfs_replication_considerLoad"]), :onchange => "update_value('hdfs/dfs_replication_considerLoad', 'dfs_replication_considerLoad', 'string')"
 
     %p
       %label{ :for => :dfs_replication_interval }= t('.dfs_replication_interval')
@@ -439,7 +471,7 @@
 
     %p
       %label{ :for => :dfs_support_append }= t('.dfs_support_append')
-      = select_tag :dfs_support_append, options_for_select([['true','true'], ['false', 'false']], "false"), :onchange => "update_value('dfs_support_append', 'dfs_support_append', 'boolean')"
+      = select_tag :dfs_support_append, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:hdfs]["dfs_support_append"]), :onchange => "update_value('hdfs/dfs_support_append', 'dfs_support_append', 'string')"
 
     %p
       %label{ :for => :dfs_web_ugi }= t('.dfs_web_ugi')
@@ -495,7 +527,7 @@
 
     %p
       %label{ :for => :keep_failed_task_files }= t('.keep_failed_task_files')
-      = select_tag :keep_failed_task_files, options_for_select([['true','true'], ['false', 'false']], "false"), :onchange => "update_value('keep_failed_task_files', 'keep_failed_task_files', 'boolean')"
+      = select_tag :keep_failed_task_files, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:mapred]["keep_failed_task_files"]), :onchange => "update_value('mapred/keep_failed_task_files', 'keep_failed_task_files', 'string')"
 
     %p
       %label{ :for => :map_sort_class }= t('.map_sort_class')
@@ -503,7 +535,7 @@
 
     %p
       %label{ :for => :mapred_acls_enabled }= t('.mapred_acls_enabled')
-      = select_tag :mapred_acls_enabled, options_for_select([['true','true'], ['false', 'false']], "false"), :onchange => "update_value('mapred_acls_enabled', 'mapred_acls_enabled', 'boolean')"
+      = select_tag :mapred_acls_enabled, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:mapred]["mapred_acls_enabled"]), :onchange => "update_value('mapred/mapred_acls_enabled', 'mapred_acls_enabled', 'string')"
 
     %p
       %label{ :for => :mapred_child_env }= t('.mapred_child_env')
@@ -539,7 +571,7 @@
 
     %p
       %label{ :for => :mapred_compress_map_output }= t('.mapred_compress_map_output')
-      = select_tag :mapred_compress_map_output, options_for_select([['true','true'], ['false', 'false']], "false"), :onchange => "update_value('mapred_compress_map_output', 'mapred_compress_map_output', 'boolean')"
+      = select_tag :mapred_compress_map_output, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:mapred]["mapred_compress_map_output"]), :onchange => "update_value('mapred/mapred_compress_map_output', 'mapred_compress_map_output', 'string')"
 
     %p
       %label{ :for => :mapred_healthChecker_interval }= t('.mapred_healthChecker_interval')
@@ -623,7 +655,7 @@
 
     %p
       %label{ :for => :mapred_job_tracker_persist_jobstatus_active }= t('.mapred_job_tracker_persist_jobstatus_active')
-      = select_tag :mapred_job_tracker_persist_jobstatus_active, options_for_select([['true','true'], ['false', 'false']], "false"), :onchange => "update_value('mapred_job_tracker_persist_jobstatus_active', 'mapred_job_tracker_persist_jobstatus_active', 'boolean')"
+      = select_tag :mapred_job_tracker_persist_jobstatus_active, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:mapred]["mapred_job_tracker_persist_jobstatus_active"]), :onchange => "update_value('mapred/mapred_job_tracker_persist_jobstatus_active', 'mapred_job_tracker_persist_jobstatus_active', 'string')"
 
     %p
       %label{ :for => :mapred_job_tracker_persist_jobstatus_dir }= t('.mapred_job_tracker_persist_jobstatus_dir')
@@ -659,7 +691,7 @@
 
     %p
       %label{ :for => :mapred_jobtracker_restart_recover }= t('.mapred_jobtracker_restart_recover')
-      = select_tag :mapred_jobtracker_restart_recover, options_for_select([['true','true'], ['false', 'false']], "false"), :onchange => "update_value('mapred_jobtracker_restart_recover', 'mapred_jobtracker_restart_recover', 'boolean')"
+      = select_tag :mapred_jobtracker_restart_recover, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:mapred]["mapred_jobtracker_restart_recover"]), :onchange => "update_value('mapred/mapred_jobtracker_restart_recover', 'mapred_jobtracker_restart_recover', 'string')"
 
     %p
       %label{ :for => :mapred_jobtracker_taskScheduler }= t('.mapred_jobtracker_taskScheduler')
@@ -699,7 +731,7 @@
 
     %p
       %label{ :for => :mapred_map_tasks_speculative_execution }= t('.mapred_map_tasks_speculative_execution')
-      = select_tag :mapred_map_tasks_speculative_execution, options_for_select([['true','true'], ['false', 'false']], "true"), :onchange => "update_value('mapred_map_tasks_speculative_execution', 'mapred_map_tasks_speculative_execution', 'boolean')"
+      = select_tag :mapred_map_tasks_speculative_execution, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:mapred]["mapred_map_tasks_speculative_execution"]), :onchange => "update_value('mapred/mapred_map_tasks_speculative_execution', 'mapred_map_tasks_speculative_execution', 'string')"
 
     %p
       %label{ :for => :mapred_max_tracker_blacklists }= t('.mapred_max_tracker_blacklists')
@@ -719,7 +751,7 @@
 
     %p
       %label{ :for => :mapred_output_compress }= t('.mapred_output_compress')
-      = select_tag :mapred_output_compress, options_for_select([['true','true'], ['false', 'false']], "false"), :onchange => "update_value('mapred_output_compress', 'mapred_output_compress', 'boolean')"
+      = select_tag :mapred_output_compress, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:mapred]["mapred_output_compress"]), :onchange => "update_value('mapred/mapred_output_compress', 'mapred_output_compress', 'string')"
 
     %p
       %label{ :for => :mapred_output_compression_codec }= t('.mapred_output_compression_codec')
@@ -759,7 +791,7 @@
 
     %p
       %label{ :for => :mapred_reduce_tasks_speculative_execution }= t('.mapred_reduce_tasks_speculative_execution')
-      = select_tag :mapred_reduce_tasks_speculative_execution, options_for_select([['true','true'], ['false', 'false']], "true"), :onchange => "update_value('mapred_reduce_tasks_speculative_execution', 'mapred_reduce_tasks_speculative_execution', 'boolean')"
+      = select_tag :mapred_reduce_tasks_speculative_execution, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:mapred]["mapred_reduce_tasks_speculative_execution"]), :onchange => "update_value('mapred/mapred_reduce_tasks_speculative_execution', 'mapred_reduce_tasks_speculative_execution', 'string')"
 
     %p
       %label{ :for => :mapred_skip_attempts_to_start_skipping }= t('.mapred_skip_attempts_to_start_skipping')
@@ -767,7 +799,7 @@
 
     %p
       %label{ :for => :mapred_skip_map_auto_incr_proc_count }= t('.mapred_skip_map_auto_incr_proc_count')
-      = select_tag :mapred_skip_map_auto_incr_proc_count, options_for_select([['true','true'], ['false', 'false']], "true"), :onchange => "update_value('mapred_skip_map_auto_incr_proc_count', 'mapred_skip_map_auto_incr_proc_count', 'boolean')"
+      = select_tag :mapred_skip_map_auto_incr_proc_count, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:mapred]["mapred_skip_map_auto_incr_proc_count"]), :onchange => "update_value('mapred/mapred_skip_map_auto_incr_proc_count', 'mapred_skip_map_auto_incr_proc_count', 'string')"
 
     %p
       %label{ :for => :mapred_skip_map_max_skip_records }= t('.mapred_skip_map_max_skip_records')
@@ -779,7 +811,7 @@
 
     %p
       %label{ :for => :mapred_skip_reduce_auto_incr_proc_count }= t('.mapred_skip_reduce_auto_incr_proc_count')
-      = select_tag :mapred_skip_reduce_auto_incr_proc_count, options_for_select([['true','true'], ['false', 'false']], "true"), :onchange => "update_value('mapred_skip_reduce_auto_incr_proc_count', 'mapred_skip_reduce_auto_incr_proc_count', 'boolean')"
+      = select_tag :mapred_skip_reduce_auto_incr_proc_count, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:mapred]["mapred_skip_reduce_auto_incr_proc_count"]), :onchange => "update_value('mapred/mapred_skip_reduce_auto_incr_proc_count', 'mapred_skip_reduce_auto_incr_proc_count', 'string')"
 
     %p
       %label{ :for => :mapred_skip_reduce_max_skip_groups }= t('.mapred_skip_reduce_max_skip_groups')
@@ -799,7 +831,7 @@
 
     %p
       %label{ :for => :mapred_task_profile }= t('.mapred_task_profile')
-      = select_tag :mapred_task_profile, options_for_select([['true','true'], ['false', 'false']], "false"), :onchange => "update_value('mapred_task_profile', 'mapred_task_profile', 'boolean')"
+      = select_tag :mapred_task_profile, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:mapred]["mapred_task_profile"]), :onchange => "update_value('mapred/mapred_task_profile', 'mapred_task_profile', 'string')"
 
     %p
       %label{ :for => :mapred_task_profile_maps }= t('.mapred_task_profile_maps')
@@ -887,7 +919,7 @@
 
     %p
       %label{ :for => :mapreduce_job_complete_cancel_delegation_tokens }= t('.mapreduce_job_complete_cancel_delegation_tokens')
-      = select_tag :mapreduce_job_complete_cancel_delegation_tokens, options_for_select([['true','true'], ['false', 'false']], "true"), :onchange => "update_value('mapreduce_job_complete_cancel_delegation_tokens', 'mapreduce_job_complete_cancel_delegation_tokens', 'boolean')"
+      = select_tag :mapreduce_job_complete_cancel_delegation_tokens, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:mapred]["mapreduce_job_complete_cancel_delegation_tokens"]), :onchange => "update_value('mapred/mapreduce_job_complete_cancel_delegation_tokens', 'mapreduce_job_complete_cancel_delegation_tokens', 'string')"
 
     %p
       %label{ :for => :mapreduce_job_counters_limit }= t('.mapreduce_job_counters_limit')
@@ -919,9 +951,35 @@
 
     %p
       %label{ :for => :mapreduce_tasktracker_outofband_heartbeat }= t('.mapreduce_tasktracker_outofband_heartbeat')
-      = select_tag :mapreduce_tasktracker_outofband_heartbeat, options_for_select([['true','true'], ['false', 'false']], "false"), :onchange => "update_value('mapreduce_tasktracker_outofband_heartbeat', 'mapreduce_tasktracker_outofband_heartbeat', 'boolean')"
+      = select_tag :mapreduce_tasktracker_outofband_heartbeat, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:mapred]["mapreduce_tasktracker_outofband_heartbeat"]), :onchange => "update_value('mapred/mapreduce_tasktracker_outofband_heartbeat', 'mapreduce_tasktracker_outofband_heartbeat', 'string')"
 
     %p
       %label{ :for => :tasktracker_http_threads }= t('.tasktracker_http_threads')
       %input#tasktracker_http_threads{:type => "text", :name => "tasktracker_http_threads", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:mapred]["tasktracker_http_threads"], :onchange => "update_value('mapred/tasktracker_http_threads', 'tasktracker_http_threads', 'string')"}
+
+    %p
+    %br
+    %strong= t('.scheduler_attributes')
+
+    %p
+      %label{ :for => :default_min_share_preemption_timeout }= t('.default_min_share_preemption_timeout')
+      %input#default_min_share_preemption_timeout{:type => "text", :name => "default_min_share_preemption_timeout", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:scheduler]["default_min_share_preemption_timeout"], :onchange => "update_value('scheduler/default_min_share_preemption_timeout', 'default_min_share_preemption_timeout', 'string')"}
+
+    %p
+      %label{ :for => :default_pool_scheduling_mode }= t('.default_pool_scheduling_mode')
+      %input#default_pool_scheduling_mode{:type => "text", :name => "default_pool_scheduling_mode", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:scheduler]["default_pool_scheduling_mode"], :onchange => "update_value('scheduler/default_pool_scheduling_mode', 'default_pool_scheduling_mode', 'string')"}
+
+    %p
+      %label{ :for => :fair_share_preemption_timeout }= t('.fair_share_preemption_timeout')
+      %input#fair_share_preemption_timeout{:type => "text", :name => "fair_share_preemption_timeout", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:scheduler]["fair_share_preemption_timeout"], :onchange => "update_value('scheduler/fair_share_preemption_timeout', 'fair_share_preemption_timeout', 'string')"}
+
+    %p
+      %label{ :for => :pool_max_jobs_default }= t('.pool_max_jobs_default')
+      %input#pool_max_jobs_default{:type => "text", :name => "pool_max_jobs_default", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:scheduler]["pool_max_jobs_default"], :onchange => "update_value('scheduler/pool_max_jobs_default', 'pool_max_jobs_default', 'string')"}
+
+    %p
+      %label{ :for => :user_max_jobs_default }= t('.user_max_jobs_default')
+      %input#user_max_jobs_default{:type => "text", :name => "user_max_jobs_default", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:scheduler]["user_max_jobs_default"], :onchange => "update_value('scheduler/user_max_jobs_default', 'user_max_jobs_default', 'string')"}
+
+
     
