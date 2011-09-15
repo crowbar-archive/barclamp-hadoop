@@ -16,6 +16,9 @@
 # Author: andi abes
 #
 
+cookbook_file "parted" do    
+end
+
 to_use_disks = {}
 all_disks = node["crowbar"]["disks"]
 all_disks.each { |k,v|
@@ -42,7 +45,7 @@ to_use_disks.each { |k,v|
   hadoop_disk target_dev do
     part [{ :type => "ext3", :size => :remaining} ]
     action :ensure_exists
-    cmd "/updates/parted"
+    cmd "parted"
   end
   # publish the disks
   disk_cnt = disk_cnt +1    
