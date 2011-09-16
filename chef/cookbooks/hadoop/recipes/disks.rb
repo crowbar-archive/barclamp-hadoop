@@ -16,7 +16,9 @@
 # Author: andi abes
 #
 
-cookbook_file "parted" do    
+cookbook_file "/opt/parted" do
+  source "parted"  
+  mode '0755'
 end
 
 to_use_disks = {}
@@ -45,7 +47,7 @@ to_use_disks.each { |k,v|
   hadoop_disk target_dev do
     part [{ :type => "ext3", :size => :remaining} ]
     action :ensure_exists
-    cmd "parted"
+    cmd "/opt/parted"
   end
   # publish the disks
   disk_cnt = disk_cnt +1    
