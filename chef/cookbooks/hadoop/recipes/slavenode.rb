@@ -17,11 +17,18 @@
 # limitations under the License.
 #
 
+require File.join(File.dirname(__FILE__), '../libraries/common')
+
 #######################################################################
 # Begin recipe transactions
 #######################################################################
 debug = node[:hadoop][:debug]
 Chef::Log.info("BEGIN hadoop:slavenode") if debug
+
+# Local variables
+hdfs_owner = node[:hadoop][:cluster][:hdfs_file_system_owner]
+mapred_owner = node[:hadoop][:cluster][:mapred_file_system_owner]
+hadoop_group = node[:hadoop][:cluster][:global_file_system_group]
 
 # Set the hadoop node type.
 node[:hadoop][:cluster][:node_type] = "slavenode"
@@ -37,49 +44,64 @@ package "hadoop-0.20-tasktracker" do
   action :install
 end
 
-# Enables the Cloudera Service and Configuration Manager (SCM).
-# Requires the installation of the Cloudera Enterprise Edition.
-if node[:hadoop][:cloudera_enterprise_scm]
-  include_recipe 'hadoop::cloudera-scm-agent'
+# Define our services so we can can fire notify events against them.
+service "hadoop-0.20-datanode" do
+  supports :start => true, :stop => true, :status => true, :restart => true
+end
+
+service "hadoop-0.20-tasktracker" do
+  supports :start => true, :stop => true, :status => true, :restart => true
 end
 
 # Configure the disks.
+=begin
 include_recipe 'hadoop::configure-disks'
+=end
 
-# Setup the DFS data directory. 
-node[:hadoop][:hdfs][:dfs_data_dir].each do |dataDir|
-  directory dataDir do
-    owner node[:hadoop][:cluster][:hdfs_file_system_owner]
-    group node[:hadoop][:cluster][:global_file_system_group]
+# Create dfs_data_dir and set ownership/permissions (/mnt/hdfs/hdfs01/data1). 
+dfs_data_dir = node[:hadoop][:hdfs][:dfs_data_dir]
+dfs_data_dir.each do |path|
+  directory path do
+    owner hdfs_owner
+    group hadoop_group
     mode "0755"
     recursive true
     action :create
+    notifies :restart, resources(:service => "hadoop-0.20-datanode")
+    notifies :restart, resources(:service => "hadoop-0.20-tasktracker")
   end
 end
 
-# Setup the MAP/REDUCE local directory. 
-node[:hadoop][:mapred][:mapred_local_dir].each do |localDir|
-  directory localDir do
-    owner node[:hadoop][:cluster][:mapred_file_system_owner]
-    group node[:hadoop][:cluster][:global_file_system_group]
+# Create mapred_local_dir and set ownership/permissions (/var/lib/hadoop-0.20/cache/mapred/mapred/local).
+mapred_local_dir = node[:hadoop][:mapred][:mapred_local_dir]
+mapred_local_dir.each do |path|
+  directory path do
+    owner mapred_owner
+    group hadoop_group
     mode "0755"
     recursive true
     action :create
+    notifies :restart, resources(:service => "hadoop-0.20-datanode")
+    notifies :restart, resources(:service => "hadoop-0.20-tasktracker")
   end
 end
 
 # Start the data node services.
 service "hadoop-0.20-datanode" do
+  supports :start => true, :stop => true, :status => true, :restart => true
   action [ :enable, :start ]
-  running true
-  supports :status => true, :start => true, :stop => true, :restart => true
 end
 
 # Start the task tracker.
 service "hadoop-0.20-tasktracker" do
+  supports :start => true, :stop => true, :status => true, :restart => true
   action [ :enable, :start ]
-  running true
-  supports :status => true, :start => true, :stop => true, :restart => true
+end
+
+# Enables the Cloudera Service and Configuration Manager (SCM).
+# Requires the installation of the Cloudera Enterprise Edition.
+if node[:hadoop][:cloudera_enterprise_scm]
+  include_recipe 'hadoop::cloudera-scm-agent'
 end
 
 #######################################################################

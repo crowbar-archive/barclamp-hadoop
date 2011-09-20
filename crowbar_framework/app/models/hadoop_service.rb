@@ -28,42 +28,50 @@ class HadoopService < ServiceObject
     @logger.debug("hadoop create_proposal: entering")
     base = super
     
-    # Get the node list
-    nodes = NodeObject.all
-    nodes.delete_if { |n| n.nil? or n.admin? }
-    
-    # Compute the cluster node distribution.
-    # You need at least 3 nodes (master, secondary and slave) to
-    # implement a baseline hadoop framework. The edge node is added if 
-    # the node count is 4 or higher.
-    master = [ ]
+    # Compute the hadoop cluster node distribution.
+    # You need at least 3 nodes (secondary name node, master name node
+    # and slave node) to implement a baseline hadoop framework. The edge
+    # node is added if the node count is 4 or higher. 
     secondary = [ ]
+    master = [ ]
     edge = [ ]
     slaves = [ ]
     
+    # Get the node list, find the admin node, put the hadoop secondary name node
+    # on the crowbar admin node (as specified by the RA) and delete the admin
+    # node from the array.
+    nodes = NodeObject.all
+    nodes.each do |n|
+      if n.nil?
+        nodes.delete(n)
+        next
+      end
+      if n.admin?
+        secondary << n[:fqdn] if n[:fqdn]
+        nodes.delete(n)
+      end
+    end
+    
+    # Add the master, slave and edge nodes.
     if nodes.size == 1
       master << nodes[0][:fqdn] if nodes[0][:fqdn]
     elsif nodes.size == 2
       master << nodes[0][:fqdn] if nodes[0][:fqdn]
-      secondary << nodes[1][:fqdn] if nodes[1][:fqdn]
+      slaves << nodes[1][:fqdn] if nodes[1][:fqdn]        
     elsif nodes.size == 3
       master << nodes[0][:fqdn] if nodes[0][:fqdn]
-      secondary << nodes[1][:fqdn] if nodes[1][:fqdn]
-      slaves << nodes[2][:fqdn] if nodes[2][:fqdn]        
+      slaves << nodes[1][:fqdn] if nodes[1][:fqdn]        
+      edge << nodes[2][:fqdn] if nodes[2][:fqdn]
     elsif nodes.size > 3
-      # Maintain the original edge node order
       master << nodes[0][:fqdn] if nodes[0][:fqdn]
-      secondary << nodes[1][:fqdn] if nodes[1][:fqdn]
-      slaves << nodes[2][:fqdn] if nodes[2][:fqdn]        
-      edge << nodes[3][:fqdn] if nodes[3][:fqdn]
-      if (nodes.size > 4)
-        nodes[4 .. nodes.size].each { |x|
-          slaves << x[:fqdn] if x[:fqdn]
-        }
-      end
+      slaves << nodes[1][:fqdn] if nodes[1][:fqdn]        
+      edge << nodes[2][:fqdn] if nodes[2][:fqdn]
+      nodes[3 .. nodes.size].each { |n|
+        slaves << n[:fqdn] if n[:fqdn]
+      }
     end
     
-    # Add the proposal elements
+    # Add the proposal deployment elements
     base["deployment"]["hadoop"]["elements"] = { } 
     base["deployment"]["hadoop"]["elements"]["hadoop-masternamenode"] = master if master && !master.empty? 
     base["deployment"]["hadoop"]["elements"]["hadoop-secondarynamenode"] = secondary if secondary && !secondary.empty? 

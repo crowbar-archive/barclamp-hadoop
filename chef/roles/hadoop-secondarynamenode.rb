@@ -21,8 +21,7 @@ name "hadoop-secondarynamenode"
 description "Hadoop Secondary Name Node Role"
 run_list(
   "recipe[hadoop::default]",
-  "recipe[hadoop::secondarynamenode]",
-  "recipe[hadoop::jobtracker]"
+  "recipe[hadoop::secondarynamenode]"
 )
 default_attributes()
 override_attributes()

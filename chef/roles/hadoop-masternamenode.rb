@@ -21,8 +21,7 @@ name "hadoop-masternamenode"
 description "Hadoop Master Name Node Role"
 run_list(
   "recipe[hadoop::default]",
-  "recipe[hadoop::masternamenode]",
-  "recipe[hadoop::jobtracker]"
+  "recipe[hadoop::masternamenode]"
 )
 default_attributes()
 override_attributes()

@@ -17,48 +17,63 @@
 # limitations under the License.
 #
 
+require File.join(File.dirname(__FILE__), '../libraries/common')
+
 #######################################################################
 # Begin recipe transactions
 #######################################################################
 debug = node[:hadoop][:debug]
 Chef::Log.info("BEGIN hadoop:secondarynamenode") if debug
 
+# Local variables
+hdfs_owner = node[:hadoop][:cluster][:hdfs_file_system_owner]
+hadoop_group = node[:hadoop][:cluster][:global_file_system_group]
+
 # Set the hadoop node type.
 node[:hadoop][:cluster][:node_type] = "secondarynamenode"
 node.save
 
-# Make sure the dfs name secondary directory exists. 
-dfs_name_secondary = "/var/lib/hadoop-0.20/dfs/namesecondary"
-directory dfs_name_secondary do
-  owner node[:hadoop][:cluster][:hdfs_file_system_owner]
-  group node[:hadoop][:cluster][:global_file_system_group]
-  mode "0755"
-  recursive true
-  action :create
-end
+#######################################################################
+# Note : We install the jobtracker package on the secondary name node
+# but we do not start the process up.
+#######################################################################
 
 # Install the secondary name node service.
 package "hadoop-0.20-secondarynamenode" do
   action :install
 end
 
-# Make sure the fs_checkpoint_dir exists. 
-node[:hadoop][:core][:fs_checkpoint_dir].each do |fs_checkpoint_dir|
-  Chef::Log.info("mkdir #{fs_checkpoint_dir}") if debug
-  directory fs_checkpoint_dir do
-    owner node[:hadoop][:cluster][:hdfs_file_system_owner]
-    group node[:hadoop][:cluster][:global_file_system_group]
-    mode "0755"
+# Install the job tracker package. 
+package "hadoop-0.20-jobtracker" do
+  action :install
+end
+
+# Create dfs_name_secondary directory and set ownership/permissions. 
+dfs_name_secondary = "/var/lib/hadoop-0.20/dfs/namesecondary"
+directory dfs_name_secondary do
+  owner hdfs_owner
+  group hadoop_group
+  mode "0775"
+  recursive true
+  action :create
+end
+
+# Create fs_checkpoint_dir and set ownership/permissions (/tmp/hadoop-metadata). 
+fs_checkpoint_dir = node[:hadoop][:core][:fs_checkpoint_dir] 
+fs_checkpoint_dir.each do |path|
+  directory path do
+    owner hdfs_owner
+    group hadoop_group
     recursive true
+    mode "0775"
     action :create
   end
 end
 
 # Start the secondary name node services.
 service "hadoop-0.20-secondarynamenode" do
+  supports :start => true, :stop => true, :status => true, :restart => true
   action [ :enable, :start ]
-  running true
-  supports :status => true, :start => true, :stop => true, :restart => true
 end
 
 #######################################################################

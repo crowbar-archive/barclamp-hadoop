@@ -17,13 +17,21 @@
 # limitations under the License.
 #
 
+require File.join(File.dirname(__FILE__), '../libraries/common')
+
 #######################################################################
 # Begin recipe transactions
 #######################################################################
 debug = node[:hadoop][:debug]
 Chef::Log.info("BEGIN hadoop:default") if debug
 
-# Configuration filter for our environment
+# Local variables
+process_owner = node[:hadoop][:cluster][:process_file_system_owner]
+mapred_owner = node[:hadoop][:cluster][:mapred_file_system_owner]
+hdfs_owner = node[:hadoop][:cluster][:hdfs_file_system_owner]
+hadoop_group = node[:hadoop][:cluster][:global_file_system_group]
+
+# Configuration filter for our crowbar environment
 env_filter = " AND environment:#{node[:hadoop][:config][:environment]}"
 
 # Install the Oracle/SUN JAVA package (Hadoop requires the JDK).
@@ -36,22 +44,12 @@ package "hadoop-0.20" do
   action :install
 end
 
-# Install the hadoop datanode service.
-package "hadoop-0.20-datanode" do
-  action :install
-end
-
-# Install the hadoop tasktracker service.
-package "hadoop-0.20-tasktracker" do
-  action :install
-end
-
 # Find the master name nodes (there should only be one). 
 master_name_nodes = Array.new
 master_name_node_objects = Array.new
 search(:node, "roles:hadoop-masternamenode#{env_filter}") do |nmas|
   if !nmas[:fqdn].nil? && !nmas[:fqdn].empty?
-    Chef::Log.info("GOT MASTER [#{nmas[:fqdn]}") if debug
+    Chef::Log.info("MASTER [#{nmas[:fqdn]}") if debug
     master_name_nodes << nmas[:fqdn]
     master_name_node_objects << nmas
   end
@@ -67,10 +65,12 @@ end
 
 # Find the secondary name nodes (there should only be one). 
 secondary_name_nodes = Array.new
+secondary_name_node_objects = Array.new
 search(:node, "roles:hadoop-secondarynamenode#{env_filter}") do |nsec|
   if !nsec[:fqdn].nil? && !nsec[:fqdn].empty?
-    Chef::Log.info("GOT SECONDARY [#{nsec[:fqdn]}") if debug
+    Chef::Log.info("SECONDARY [#{nsec[:fqdn]}") if debug
     secondary_name_nodes << nsec[:fqdn]
+    secondary_name_node_objects << nsec
   end
 end
 node[:hadoop][:cluster][:secondary_name_nodes] = secondary_name_nodes
@@ -86,7 +86,7 @@ end
 edge_nodes = Array.new
 search(:node, "roles:hadoop-edgenode#{env_filter}") do |nedge|
   if !nedge[:fqdn].nil? && !nedge[:fqdn].empty?
-    Chef::Log.info("GOT EDGE [#{nedge[:fqdn]}") if debug
+    Chef::Log.info("EDGE [#{nedge[:fqdn]}") if debug
     edge_nodes << nedge[:fqdn] 
   end
 end
@@ -96,7 +96,7 @@ node[:hadoop][:cluster][:edge_nodes] = edge_nodes
 slave_nodes = Array.new
 search(:node, "roles:hadoop-slavenode#{env_filter}") do |nslave|
   if !nslave[:fqdn].nil? && !nslave[:fqdn].empty?
-    Chef::Log.info("GOT SLAVE [#{nslave[:fqdn]}") if debug
+    Chef::Log.info("SLAVE [#{nslave[:fqdn]}") if debug
     slave_nodes << nslave[:fqdn] 
   end
 end
@@ -136,76 +136,86 @@ node[:hadoop][:mapred][:mapred_job_tracker] = "#{master_node_ip}:50030"
 # If the port is 0 then the server will start on a free port "0.0.0.0:50030".
 node[:hadoop][:mapred][:mapred_job_tracker_http_address] = "#{master_node_ip}:50031"
 
+secondary_node_ip = "0.0.0.0"
+if !secondary_name_node_objects.nil? && secondary_name_node_objects.length > 0
+  secondary_node_ip = BarclampLibrary::Barclamp::Inventory.get_network_by_type(secondary_name_node_objects[0],"admin").address
+end
+Chef::Log.info("secondary_node_ip #{secondary_node_ip}") if debug
+
+# The secondary namenode http server address and port. If the port is 0
+# then the server will start on a free port.
+node[:hadoop][:hdfs][:dfs_secondary_http_address] = "#{secondary_node_ip}:50090"
+
 node.save
 
-# Create the logging directory and set ownership/permissions. 
+# Create hadoop_log_dir and set ownership/permissions (/var/log/hadoop). 
 hadoop_log_dir = node[:hadoop][:env][:hadoop_log_dir]
 directory hadoop_log_dir do
-  Chef::Log.info("mkdir #{hadoop_log_dir}") if debug
-  owner node[:hadoop][:cluster][:process_file_system_owner]
-  group node[:hadoop][:cluster][:global_file_system_group]
+  owner process_owner
+  group hadoop_group
+  mode "0775"
+  action :create
+end
+
+# Create hadoop_tmp_dir and ownership/permissions (/tmp/hadoop-crowbar).
+hadoop_tmp_dir = node[:hadoop][:core][:hadoop_tmp_dir]
+directory hadoop_tmp_dir do
+  owner process_owner
+  group hadoop_group
+  mode "0775"
+  action :create
+end
+
+# Create fs_s3_buffer_dir and ownership/permissions (/tmp/hadoop-crowbar/s3).
+fs_s3_buffer_dir = node[:hadoop][:core][:fs_s3_buffer_dir]
+directory fs_s3_buffer_dir do
+  owner hdfs_owner
+  group hadoop_group
   mode "0775"
   recursive true
   action :create
 end
 
-# Create the dfs name directory and set ownership/permissions. 
-# NOTE: "directory recursive" does not set the directory permissions correctly. 
-node[:hadoop][:hdfs][:dfs_name_dir].each do |dfs_name_dir|
-  dir = ""
-  dfs_name_dir.split('/').each do |d|
-    next if (d.nil? || d.empty?)
-    dir = "#{dir}/#{d}"
-    if !File.exists?(dir)
-      Chef::Log.info("mkdir #{dir}") if debug
-      directory dir do
-        owner node[:hadoop][:cluster][:hdfs_file_system_owner]
-        group node[:hadoop][:cluster][:global_file_system_group]
-        mode "0755"
-        action :create
-      end
-    end
+# Create mapred_system_dir and set ownership/permissions (/mapred/system).
+# Note : Recursive does not set the parent directory owner, group and permissions
+# correctly.
+mapred_system_dir = node[:hadoop][:mapred][:mapred_system_dir]
+make_dir_path(mapred_system_dir, mapred_owner, hadoop_group, "0775")
+# directory mapred_system_dir do
+#  owner mapred_owner
+#  group hadoop_group
+#  mode "0775"
+#  recursive true
+#  action :create
+# end
+
+# Create mapred_local_dir and set ownership/permissions (/var/lib/hadoop-0.20/cache/mapred/mapred/local).
+mapred_local_dir = node[:hadoop][:mapred][:mapred_local_dir]
+mapred_local_dir.each do |path|
+  directory path do
+    owner mapred_owner
+    group hadoop_group
+    mode "0755"
+    recursive true
+    action :create
   end
 end
 
-# Create the mapred local directory and set ownership/permissions.
-# NOTE: "directory recursive" does not set the directory permissions correctly. 
-node[:hadoop][:mapred][:mapred_local_dir].each do |mapred_local_dir|
-  dir = ""
-  mapred_local_dir.split('/').each do |d|
-    next if (d.nil? || d.empty?)
-    dir = "#{dir}/#{d}"
-    if !File.exists?(dir)
-      Chef::Log.info("mkdir #{dir}") if debug
-      directory dir do
-        owner node[:hadoop][:cluster][:mapred_file_system_owner]
-        group node[:hadoop][:cluster][:global_file_system_group]
-        mode "0755"
-        action :create
-      end
-    end
-  end
-end
-
-# Create the mapred_system_dir and set ownership/permissions. 
-# NOTE: "directory recursive" does not set the directory permissions correctly. 
-dir = ""
-node[:hadoop][:mapred][:mapred_system_dir].split('/').each do |d|
-  next if (d.nil? || d.empty?)
-  dir = "#{dir}/#{d}"
-  if !File.exists?(dir)
-    Chef::Log.info("mkdir #{dir}") if debug
-    directory dir do
-      owner node[:hadoop][:cluster][:mapred_file_system_owner]
-      group node[:hadoop][:cluster][:global_file_system_group]
-      mode "0755"
-      action :create
-    end
+# Create dfs_name_dir and set ownership/permissions (/mnt/hdfs/hdfs01/meta1).
+dfs_name_dir = node[:hadoop][:hdfs][:dfs_name_dir]
+dfs_name_dir.each do |path|
+  directory path do
+    owner hdfs_owner
+    group hadoop_group
+    mode "0755"
+    recursive true
+    action :create
   end
 end
 
 # The only services we ever want to automatically restart upon
 # a config change are these two so we define them up here.
+=begin
 service "hadoop-0.20-datanode" do
   supports :status => true, :start => true, :stop => true, :restart => true
 end
@@ -213,69 +223,81 @@ end
 service "hadoop-0.20-tasktracker" do
   supports :status => true, :start => true, :stop => true, :restart => true
 end
+=end
+
+# Configure /etc/security/limits.conf.  
+# mapred      -    nofile     32768
+# hdfs        -    nofile     32768
+# hbase       -    nofile     32768
+template "/etc/security/limits.conf" do
+  owner "root"
+  group "root"
+  mode "0644"
+  source "limits.conf.erb"
+end
 
 # Configure the master nodes.  
 template "/etc/hadoop/conf/masters" do
-  owner node[:hadoop][:cluster][:process_file_system_owner]
-  group node[:hadoop][:cluster][:global_file_system_group]
+  owner process_owner
+  group hadoop_group
   mode "0644"
   source "masters.erb"
-  notifies :restart, resources(:service => "hadoop-0.20-datanode")
-  notifies :restart, resources(:service => "hadoop-0.20-tasktracker")
+  #  notifies :restart, resources(:service => "hadoop-0.20-datanode")
+  #  notifies :restart, resources(:service => "hadoop-0.20-tasktracker")
 end
 
 # Configure the slave nodes.  
 template "/etc/hadoop/conf/slaves" do
-  owner node[:hadoop][:cluster][:process_file_system_owner]
-  group node[:hadoop][:cluster][:global_file_system_group]
+  owner process_owner
+  group hadoop_group
   mode "0644"
   source "slaves.erb"
-  notifies :restart, resources(:service => "hadoop-0.20-datanode")
-  notifies :restart, resources(:service => "hadoop-0.20-tasktracker")
+  #  notifies :restart, resources(:service => "hadoop-0.20-datanode")
+  #  notifies :restart, resources(:service => "hadoop-0.20-tasktracker")
 end
 
-# Drop the Hadoop configuration on the target host and restart the services.  
+# Configure the hadoop core component.
 template "/etc/hadoop/conf/core-site.xml" do
-  owner node[:hadoop][:cluster][:process_file_system_owner]
-  group node[:hadoop][:cluster][:global_file_system_group]
+  owner process_owner
+  group hadoop_group
   mode "0644"
   source "core-site.xml.erb"
-  notifies :restart, resources(:service => "hadoop-0.20-datanode")
-  notifies :restart, resources(:service => "hadoop-0.20-tasktracker")
+  #  notifies :restart, resources(:service => "hadoop-0.20-datanode")
+  #  notifies :restart, resources(:service => "hadoop-0.20-tasktracker")
 end
 
-# Install the HDFS component.
+# Configure the HDFS component.
 template "/etc/hadoop/conf/hdfs-site.xml" do
-  owner node[:hadoop][:cluster][:process_file_system_owner]
-  group node[:hadoop][:cluster][:global_file_system_group]
+  owner process_owner
+  group hadoop_group
   mode "0644"
   source "hdfs-site.xml.erb"
-  notifies :restart, resources(:service => "hadoop-0.20-datanode")
+  #  notifies :restart, resources(:service => "hadoop-0.20-datanode")
 end
 
-# Install the Map/Reduce component.
+# Configure the MAP/Reduce component.
 template "/etc/hadoop/conf/mapred-site.xml" do
-  owner node[:hadoop][:cluster][:process_file_system_owner]
-  group node[:hadoop][:cluster][:global_file_system_group]
+  owner process_owner
+  group hadoop_group
   mode "0644"
   source "mapred-site.xml.erb"
-  notifies :restart, resources(:service => "hadoop-0.20-tasktracker")
+  #  notifies :restart, resources(:service => "hadoop-0.20-tasktracker")
 end
 
-# Install the hadoop ENV component.
+# Configure the Hadoop ENV component.
 template "/etc/hadoop/conf/hadoop-env.sh" do
-  owner node[:hadoop][:cluster][:process_file_system_owner]
-  group node[:hadoop][:cluster][:global_file_system_group]
+  owner process_owner
+  group hadoop_group
   mode "0755"
   source "hadoop-env.sh.erb"
-  notifies :restart, resources(:service => "hadoop-0.20-datanode")
-  notifies :restart, resources(:service => "hadoop-0.20-tasktracker")
+  #  notifies :restart, resources(:service => "hadoop-0.20-datanode")
+  #  notifies :restart, resources(:service => "hadoop-0.20-tasktracker")
 end
 
-# Install hadoop-metrics.properties.
+# Configure hadoop-metrics.properties.
 template "/etc/hadoop/conf/hadoop-metrics.properties" do
-  owner node[:hadoop][:cluster][:process_file_system_owner]
-  group node[:hadoop][:cluster][:global_file_system_group]
+  owner process_owner
+  group hadoop_group
   mode "0644"
   source "hadoop-metrics.properties.erb"
 end

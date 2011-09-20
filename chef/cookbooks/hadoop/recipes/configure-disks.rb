@@ -17,11 +17,18 @@
 # limitations under the License.
 #
 
+require File.join(File.dirname(__FILE__), '../libraries/common')
+
 #######################################################################
 # Begin recipe transactions
 #######################################################################
 debug = node[:hadoop][:debug]
 Chef::Log.info("BEGIN hadoop:configure-disks") if debug
+
+# Local variables
+hadoop_group = node[:hadoop][:cluster][:global_file_system_group]
+hdfs_user = node[:hadoop][:cluster][:hdfs_file_system_owner]
+mapred_user = node[:hadoop][:cluster][:mapred_file_system_owner]
 
 =begin
 # Configure the hadoop disks.
@@ -66,42 +73,61 @@ if !new_array.nil? && new_array.length > 0
   node.save
 end
 
+  
 #######################################################################
 # Format the hadoop file system.
 # exec 'hadoop namenode -format'.
 # You can't be root (or you need to specify HADOOP_NAMENODE_USER).
 #######################################################################
 
-dfs_image_dir = "#{hb}/meta1/image"
-hdfs_file_system_owner = node[:hadoop][:cluster][:hdfs_file_system_owner]
-
 if (!File.exists?("#{hb}/meta1/image")) 
-  # Format HDFS. 
+  
+  # Initialize HDFS.
   # HDFS cannot run as root, so override the process owner (hdfs).
-  cmd = "echo 'Y' | hadoop namenode -format"
-  Chef::Log.info("#{cmd} #{hdfs_file_system_owner}") if debug
-  execute "hdfs_format" do
-    user hdfs_file_system_owner
-    command cmd
-    returns [0, 1, 255]
+  # Execution sequence is important to avoid locking conditions;
+  # a) Name node process must be down, job tracker process must be up.
+  #    service hadoop-0.20-namenode stop
+  #    service hadoop-0.20-jobtracker start
+  # b) execute "echo 'Y' | hadoop namenode -format"
+  # c) bring the name node process up
+  #    service hadoop-0.20-namenode start
+  # e) execute "hadoop fs -mkdir /mapred/system"
+  # f) execute "hadoop fs -chown hdfs:hadoop /mapred/system"
+  
+  # Make sure the name node process is down.
+  # {start|stop|status|restart|try-restart|upgrade|rollback}
+  service "hadoop-0.20-namenode" do
+    supports :start => true, :stop => true, :status => true, :restart => true
+    action :stop 
+  end 
+  
+  # Make sure the jobtracker service is up.
+  # {start|stop|status|restart|try-restart}
+  service "hadoop-0.20-jobtracker" do
+    supports :start => true, :stop => true, :status => true, :restart => true
+    action [ :enable, :start ]
+  end 
+  
+  bash "hadoop-hdfs-format" do
+    user hdfs_user
+    code <<-EOH
+echo 'Y' | hadoop namenode -format
+EOH
   end
   
-  # Create the mapred system directory
-  cmd = "hadoop fs -mkdir /mapred/system"
-  Chef::Log.info("#{cmd} #{hdfs_file_system_owner}") if debug
-  execute "hdfs_make_sys_dir" do
-    user hdfs_file_system_owner
-    command cmd
-    returns [0, 1, 255]
-  end
+  # Make sure the name node process is up.
+  # {start|stop|status|restart|try-restart|upgrade|rollback}
+  service "hadoop-0.20-namenode" do
+    supports :start => true, :stop => true, :status => true, :restart => true
+    action [ :enable, :start ]
+  end 
   
-  # Create the mapred system directory permissions
-  cmd = "hadoop fs -chown mapred:hadoop /mapred/system"
-  Chef::Log.info("#{cmd} #{hdfs_file_system_owner}") if debug
-  execute "hdfs_set_sys_dir_perms" do
-    user hdfs_file_system_owner
-    command cmd
-    returns [0, 1, 255]
+  bash "hadoop-hdfs-init" do
+    user hdfs_user
+    code <<-EOH
+hadoop fs -mkdir /mapred/system
+hadoop fs -chown #{mapred_user}:#{hadoop_group} /mapred/system
+EOH
   end
   
 else 

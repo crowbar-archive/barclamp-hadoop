@@ -17,6 +17,8 @@
 # limitations under the License.
 #
 
+require File.join(File.dirname(__FILE__), '../libraries/common')
+
 #######################################################################
 # Begin recipe transactions
 #######################################################################
