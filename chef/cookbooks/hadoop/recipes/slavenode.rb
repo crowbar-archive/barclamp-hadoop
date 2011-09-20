@@ -53,12 +53,17 @@ service "hadoop-0.20-tasktracker" do
   supports :start => true, :stop => true, :status => true, :restart => true
 end
 
-# Configure the disks.
-=begin
-include_recipe 'hadoop::configure-disks'
-=end
+# Configure the data node disk mount points. These were set by configure-disks.rb.
+dfs_data_dir = Array.new
+node[:hadoop][:devices].each do |rec| 
+  Chef::Log.info("mount_point add #{rec[:mount_point]}") if debug
+  dfs_data_dir << rec[:mount_point]
+end
+node[:hadoop][:hdfs][:dfs_data_dir] = dfs_data_dir 
 
-# Create dfs_data_dir and set ownership/permissions (/mnt/hdfs/hdfs01/data1). 
+# Set the dfs_data_dir ownership/permissions (/mnt/hdfs/hdfs01/data1).
+# The directories are already created by the configure-disks.rb script,
+# but we need to fix up the file system permissions.
 dfs_data_dir = node[:hadoop][:hdfs][:dfs_data_dir]
 dfs_data_dir.each do |path|
   directory path do

@@ -1,23 +1,20 @@
 #
-# Cookbook Name: hadoop
-# Recipe: configure-disks.rb
-#
-# Copyright (c) 2011 Dell Inc.
+# Copyright 2011, Dell
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#
+# 
 #     http://www.apache.org/licenses/LICENSE-2.0
-#
+# 
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-require File.join(File.dirname(__FILE__), '../libraries/common')
+# Author: andi abes
+#
 
 #######################################################################
 # Begin recipe transactions
@@ -25,114 +22,92 @@ require File.join(File.dirname(__FILE__), '../libraries/common')
 debug = node[:hadoop][:debug]
 Chef::Log.info("BEGIN hadoop:configure-disks") if debug
 
-# Local variables
-hadoop_group = node[:hadoop][:cluster][:global_file_system_group]
-hdfs_user = node[:hadoop][:cluster][:hdfs_file_system_owner]
-mapred_user = node[:hadoop][:cluster][:mapred_file_system_owner]
-
-=begin
-# Configure the hadoop disks.
-cookbook_file "/tmp/configure-disks.sh" do
-  source "configure-disks.sh"
-  owner node[:hadoop][:cluster][:process_file_system_owner]
-  group node[:hadoop][:cluster][:global_file_system_group]
-  backup false
-  mode "0755"
+cookbook_file "/opt/parted" do
+  source "parted"  
+  mode '0755'
 end
 
-execute "configure-disks" do
-  command "/tmp/configure-disks.sh"
-  action :run
-end
-=end
+to_use_disks = {}
+all_disks = node["crowbar"]["disks"]
+all_disks.each { |k,v|
+  b = binding()
+  to_use_disks[k]=v if v["usage"] == "Storage"  
+}
 
-# Check the dfs_name_dir configuration. Data partitions are numbered 
-# 1-N (i.e. /mnt/hdfs/hdfs01/meta1 - /mnt/hdfs/hdfs01/metaN).  
-new_array = []
-dfs_base_dir = node[:hadoop][:hdfs][:dfs_base_dir]  
-hb = "#{dfs_base_dir}/hdfs01"
-if File.exist?("#{hb}/meta6")
-  new_array = ["#{hb}/meta1", "#{hb}/meta2", "#{hb}/meta3", "#{hb}/meta4", "#{hb}/meta5", "#{hb}/meta6" ] 
-elsif File.exist?("#{hb}/meta5")
-  new_array = [ "#{hb}/meta1", "#{hb}/meta2", "#{hb}/meta3", "#{hb}/meta4", "#{hb}/meta5" ] 
-elsif File.exist?("#{hb}/meta4")
-  new_array = [ "#{hb}/meta1", "#{hb}/meta2", "#{hb}/meta3", "#{hb}/meta4" ]
-elsif File.exist?("#{hb}/meta3")
-  new_array = [ "#{hb}/meta1", "#{hb}/meta2", "#{hb}/meta3" ]
-elsif File.exist?("#{hb}/meta2")
-  new_array = [ "#{hb}/meta1", "#{hb}/meta2" ]
-elsif File.exist?("#{hb}/meta1")
-  new_array = [ "#{hb}/meta1" ]
-else
-  new_array = [ "#{hb}/meta1" ]
-end
+Chef::Log.info("disks found: #{to_use_disks.keys.join(':')}") if debug 
 
-# Update dfs_name_dir if changes have been detected.
-if !new_array.nil? && new_array.length > 0
-  node.set[:hadoop][:hdfs][:dfs_name_dir] = new_array
-  node.save
-end
-
+node[:hadoop][:devices] = []
+disk_cnt =0
+to_use_disks.each { |k,v| 
   
-#######################################################################
-# Format the hadoop file system.
-# exec 'hadoop namenode -format'.
-# You can't be root (or you need to specify HADOOP_NAMENODE_USER).
-#######################################################################
-
-if (!File.exists?("#{hb}/meta1/image")) 
+  # By default, we will format first partition.
+  target_suffix= k + "1" 
+  target_dev = "/dev/#{k}"
+  target_dev_part = "/dev/#{target_suffix}"
   
-  # Initialize HDFS.
-  # HDFS cannot run as root, so override the process owner (hdfs).
-  # Execution sequence is important to avoid locking conditions;
-  # a) Name node process must be down, job tracker process must be up.
-  #    service hadoop-0.20-namenode stop
-  #    service hadoop-0.20-jobtracker start
-  # b) execute "echo 'Y' | hadoop namenode -format"
-  # c) bring the name node process up
-  #    service hadoop-0.20-namenode start
-  # e) execute "hadoop fs -mkdir /mapred/system"
-  # f) execute "hadoop fs -chown hdfs:hadoop /mapred/system"
-  
-  # Make sure the name node process is down.
-  # {start|stop|status|restart|try-restart|upgrade|rollback}
-  service "hadoop-0.20-namenode" do
-    supports :start => true, :stop => true, :status => true, :restart => true
-    action :stop 
-  end 
-  
-  # Make sure the jobtracker service is up.
-  # {start|stop|status|restart|try-restart}
-  service "hadoop-0.20-jobtracker" do
-    supports :start => true, :stop => true, :status => true, :restart => true
-    action [ :enable, :start ]
-  end 
-  
-  bash "hadoop-hdfs-format" do
-    user hdfs_user
-    code <<-EOH
-echo 'Y' | hadoop namenode -format
-EOH
+  # Protect against OS's that confuse ohai. if the device isn't there,
+  # don't 'try to use it.
+  if File.exists?(target_dev) == false
+    Chef::Log.warn("device: #{target_dev} doesn't seem to exist. ignoring")
+    next
   end
   
-  # Make sure the name node process is up.
-  # {start|stop|status|restart|try-restart|upgrade|rollback}
-  service "hadoop-0.20-namenode" do
-    supports :start => true, :stop => true, :status => true, :restart => true
-    action [ :enable, :start ]
-  end 
-  
-  bash "hadoop-hdfs-init" do
-    user hdfs_user
-    code <<-EOH
-hadoop fs -mkdir /mapred/system
-hadoop fs -chown #{mapred_user}:#{hadoop_group} /mapred/system
-EOH
+  hadoop_disk target_dev do
+    part [{ :type => "ext3", :size => :remaining} ]
+    action :ensure_exists
+    cmd "/opt/parted"
+  end
+  # Publish the disks.
+  disk_cnt = disk_cnt +1    
+  mount_point = "/mnt/hdfs/hdfs01/data#{disk_cnt}"
+  node[:hadoop][:devices] <<  {:name=>target_dev_part, :size=> :remaining, :mount_point=> mount_point}
+}
+
+execute "sync" do
+  command "sync ; sleep 3"
+end
+
+# Create all the actions required to format all the file systems, but
+# don't run them rather, the ruby block that follows spawns parallel
+# threads to perform the formatting concurently.
+actions = []
+node[:hadoop][:devices].each { |k| 
+  a = execute "make_fs #{k[:name]}" do
+    command "echo 'formatting #{k[:name]}' ; mkfs.ext3 -F #{k[:name]}"    
+    returns [0, 1]
+    not_if "tune2fs -l #{k[:name]}"  # if there's a superblock - assume good.
+    action :nothing
+  end
+  actions << a
+}  
+
+# Spawn threads as part of the convergence phase, and format the file
+# systems in parallel. Wait for activity to complete.
+ruby_block "Format things in parallel" do
+  block do
+    threads = []
+    actions.each { | a| 
+      threads << Thread.new { |t| a.run_action(:run)}
+    }
+    threads.each { |t| t.join }
+  end  
+end
+
+node[:hadoop][:devices].each { |k|   
+  directory k[:mount_point] do
+    recursive true
+    action :create
   end
   
-else 
-  Chef::Log.info("skipping hdfs format") if debug
-end
+  mount k[:mount_point]  do  
+    device k[:name]
+    options "noatime,nodiratime"
+    dump 0  
+    pass 0 ## no FSCK testing.
+    fstype "ext3"
+    action [:mount, :enable]
+  end  
+}
 
 #######################################################################
 # End of recipe transactions

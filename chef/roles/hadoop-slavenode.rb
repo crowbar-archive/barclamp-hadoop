@@ -20,6 +20,7 @@
 name "hadoop-slavenode"
 description "Hadoop Slave Node Role"
 run_list(
+  "recipe[hadoop::configure-disks]",
   "recipe[hadoop::default]",
   "recipe[hadoop::slavenode]"
 )

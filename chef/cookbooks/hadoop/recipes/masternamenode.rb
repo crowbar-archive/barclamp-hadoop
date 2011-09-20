@@ -61,11 +61,6 @@ template "/etc/hadoop/conf/fair-scheduler.xml" do
   source "fair-scheduler.xml.erb"
 end
 
-# Configure the disks
-=begin
-include_recipe 'hadoop::configure-disks'
-=end
-
 # Check the dfs_name_dir configuration. Data partitions are numbered 
 # 1-N (i.e. /mnt/hdfs/hdfs01/meta1 - /mnt/hdfs/hdfs01/metaN).  
 new_array = []
