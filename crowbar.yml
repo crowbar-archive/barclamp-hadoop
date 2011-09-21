@@ -19,6 +19,10 @@ barclamp:
   name: hadoop
   display: Hadoop
   version: 0
+  requires:
+    - crowbar
+    - ganglia
+    - nagios
 
 crowbar:
   layout: 1
@@ -277,3 +281,15 @@ locale_additions:
           fair_share_preemption_timeout: fair_share_preemption_timeout
           pool_max_jobs_default: pool_max_jobs_default
           user_max_jobs_default: user_max_jobs_default   
+
+rpms:
+  pkgs:
+    - cloudera-scm-agent
+    - cloudera-scm-server
+    - jdk
+    - hadoop-0.20
+    - hadoop-0.20-namenode
+    - hadoop-0.20-jobtracker
+    - hadoop-0.20-secondarynamenode
+    - hadoop-0.20-datanode
+    - hadoop-0.20-tasktracker
