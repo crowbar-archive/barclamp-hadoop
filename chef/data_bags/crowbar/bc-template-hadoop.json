@@ -85,7 +85,7 @@
         "dfs_blockreport_initialDelay": "",
         "dfs_blockreport_intervalMsec": "3600000",
         "dfs_client_block_write_retries": "3",
-        "dfs_data_dir": "/mnt/hdfs/hdfs01/data1",
+        "dfs_data_dir": [ "/mnt/hdfs/hdfs01/data1" ],
         "dfs_datanode_address": "0.0.0.0:50010",
         "dfs_datanode_data_dir_perm": "755",
         "dfs_datanode_dns_interface": "default",

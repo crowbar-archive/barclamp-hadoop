@@ -113,7 +113,11 @@
                 "dfs_blockreport_initialDelay": { "type": "str", "required": false},
                 "dfs_blockreport_intervalMsec": { "type": "str", "required": true},
                 "dfs_client_block_write_retries": { "type": "str", "required": true},
-                "dfs_data_dir": { "type": "str", "required": true},
+                "dfs_data_dir": {
+                  "type": "seq",
+                  "required": true,
+                  "sequence": [ { "type": "str" } ]
+                },
                 "dfs_datanode_address": { "type": "str", "required": true},
                 "dfs_datanode_data_dir_perm": { "type": "str", "required": true},
                 "dfs_datanode_dns_interface": { "type": "str", "required": true},

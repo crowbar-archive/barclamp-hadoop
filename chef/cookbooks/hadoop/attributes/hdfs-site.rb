@@ -64,7 +64,7 @@ default[:hadoop][:hdfs][:dfs_client_block_write_retries] = "3"
 # will be stored in all named directories, typically on different devices.
 # Directories that do not exist are ignored.
 # DEFAULT: ${hadoop.tmp.dir}/dfs/data. 
-default[:hadoop][:hdfs][:dfs_data_dir] = "/mnt/hdfs/hdfs01/data1"
+default[:hadoop][:hdfs][:dfs_data_dir] = [ "/mnt/hdfs/hdfs01/data1" ]
 
 # The address where the datanode server will listen to. If the port is 0
 # then the server will start on a free port.
