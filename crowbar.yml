@@ -19,6 +19,10 @@ barclamp:
   name: hadoop
   display: Hadoop
   version: 0
+  requires:
+    - crowbar
+    - ganglia
+    - nagios
 
 crowbar:
   layout: 1
