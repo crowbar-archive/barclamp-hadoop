@@ -53,19 +53,12 @@ service "hadoop-0.20-tasktracker" do
   supports :start => true, :stop => true, :status => true, :restart => true
 end
 
-# Configure the data node disk mount points. These were set
-# by configure-disks.rb. Make the lost+found file created by
-# parted HDFS readable or HDFS will complain about read access.
+# Configure the data node disk mount points (dfs_data_dir).
+# These were set by configure-disks.rb. 
 dfs_data_dir = Array.new
 node[:hadoop][:devices].each do |rec| 
   Chef::Log.info("mount_point #{rec[:mount_point]}") if debug
   dfs_data_dir << rec[:mount_point]
-  lost_found = "#{rec[:mount_point]}/lost+found"
-  file "#{lost_found}" do
-    owner "root"
-    group "root"
-    mode "0755"
-  end
 end
 node[:hadoop][:hdfs][:dfs_data_dir] = dfs_data_dir 
 
@@ -82,6 +75,15 @@ dfs_data_dir.each do |path|
     action :create
     notifies :restart, resources(:service => "hadoop-0.20-datanode")
     notifies :restart, resources(:service => "hadoop-0.20-tasktracker")
+  end
+  # Make the lost+found file readable by HDFS or it will complain
+  # about read access when the data node processes are started.
+  lost_found = "#{path}/lost+found"
+  file "#{lost_found}" do
+    owner "root"
+    group "root"
+    mode "0755"
+    only_if { ::File.exists?("#{lost_found}") }
   end
 end
 
