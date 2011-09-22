@@ -5,7 +5,6 @@ description      "Common libraries and utilities that provides the basic Hadoop 
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.rdoc'))
 version          "1.0"
 recipe           "hadoop::default", "Installs hadoop base libraries and configuration."
-recipe           "hadoop::jobtracker", "Installs the job tracker package."
 recipe           "hadoop::masternamenode", "Installs the master name node package and prepares the file system."
 recipe           "hadoop::secondarynamenode", "Installs the secondary name node package and prepares the file system."
 recipe           "hadoop::slavenode", "Installs the slave node and task tracker packages and prepares the file system."

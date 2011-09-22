@@ -55,4 +55,3 @@ def make_dir_array(array, owner, group, mode)
     make_dir_path(path, owner, group, mode)
   end
 end
-
