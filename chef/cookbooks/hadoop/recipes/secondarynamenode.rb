@@ -33,19 +33,36 @@ hadoop_group = node[:hadoop][:cluster][:global_file_system_group]
 node[:hadoop][:cluster][:node_type] = "secondarynamenode"
 node.save
 
-#######################################################################
-# Note : We install the jobtracker package on the secondary name node
-# but we do not start the process up.
-#######################################################################
-
-# Install the secondary name node service.
+# Install the secondary name node service. We install the jobtracker
+# package on the secondary name node but do not start the service up.
 package "hadoop-0.20-secondarynamenode" do
   action :install
 end
 
-# Install the job tracker package. 
 package "hadoop-0.20-jobtracker" do
   action :install
+end
+
+# Define our services so we can register notify events them.
+# Make sure the job tracker doesn't start up on reboot.
+service "hadoop-0.20-secondarynamenode" do
+  supports :start => true, :stop => true, :status => true, :restart => true
+  action :enable
+  # Subscribe to common configuration change events (default.rb).
+  subscribes :restart, resources(:template => "/etc/security/limits.conf")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/masters")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/slaves")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/core-site.xml")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/hdfs-site.xml")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/mapred-site.xml")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/hadoop-env.sh")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/hadoop-metrics.properties")
+end
+
+# Install the jobtracker package but keep it disabled.
+service "hadoop-0.20-jobtracker" do
+  supports :start => true, :stop => true, :status => true, :restart => true
+  action :disable
 end
 
 # Create dfs_name_secondary directory and set ownership/permissions. 
@@ -56,6 +73,7 @@ directory dfs_name_secondary do
   mode "0775"
   recursive true
   action :create
+  notifies :restart, resources(:service => "hadoop-0.20-secondarynamenode")
 end
 
 # Create fs_checkpoint_dir and set ownership/permissions (/tmp/hadoop-metadata). 
@@ -67,13 +85,13 @@ fs_checkpoint_dir.each do |path|
     recursive true
     mode "0775"
     action :create
+    notifies :restart, resources(:service => "hadoop-0.20-secondarynamenode")
   end
 end
 
-# Start the secondary name node services.
+# Start the secondary name node service.
 service "hadoop-0.20-secondarynamenode" do
-  supports :start => true, :stop => true, :status => true, :restart => true
-  action [ :enable, :start ]
+  action :start
 end
 
 #######################################################################

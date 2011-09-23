@@ -33,7 +33,6 @@ hadoop_group = node[:hadoop][:cluster][:global_file_system_group]
 
 # Set the hadoop node type.
 node[:hadoop][:cluster][:node_type] = "masternamenode"
-node.save
 
 # Install the name node package.
 package "hadoop-0.20-namenode" do
@@ -45,12 +44,44 @@ package "hadoop-0.20-jobtracker" do
   action :install
 end
 
+# Define our services so we can register notify events them.
+service "hadoop-0.20-namenode" do
+  supports :start => true, :stop => true, :status => true, :restart => true
+  action :enable
+  # Subscribe to common configuration change events (default.rb).
+  subscribes :restart, resources(:template => "/etc/security/limits.conf")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/masters")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/slaves")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/core-site.xml")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/hdfs-site.xml")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/mapred-site.xml")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/hadoop-env.sh")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/hadoop-metrics.properties")
+end
+
+# Start the jobtracker service.
+service "hadoop-0.20-jobtracker" do
+  supports :start => true, :stop => true, :status => true, :restart => true
+  action :enable
+  # Subscribe to common configuration change events (default.rb).
+  subscribes :restart, resources(:template => "/etc/security/limits.conf")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/masters")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/slaves")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/core-site.xml")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/hdfs-site.xml")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/mapred-site.xml")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/hadoop-env.sh")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/hadoop-metrics.properties")
+end
+
 # Configure DFS host exclusion.
 template "/etc/hadoop/conf/dfs.hosts.exclude" do
   owner process_owner
   group hadoop_group
   mode "0644"
   source "dfs.hosts.exclude.erb"
+  notifies :restart, resources(:service => "hadoop-0.20-namenode")
+  notifies :restart, resources(:service => "hadoop-0.20-jobtracker")
 end
 
 # Setup the fair scheduler.
@@ -59,11 +90,13 @@ template "/etc/hadoop/conf/fair-scheduler.xml" do
   group hadoop_group
   mode "0644"
   source "fair-scheduler.xml.erb"
+  notifies :restart, resources(:service => "hadoop-0.20-namenode")
+  notifies :restart, resources(:service => "hadoop-0.20-jobtracker")
 end
 
 # Check the dfs_name_dir configuration. Data partitions are numbered 
 # 1-N (i.e. /mnt/hdfs/hdfs01/meta1 - /mnt/hdfs/hdfs01/metaN).  
-new_array = []
+new_array = Array.new
 dfs_base_dir = node[:hadoop][:hdfs][:dfs_base_dir]  
 hb = "#{dfs_base_dir}/hdfs01"
 if File.exist?("#{hb}/meta6")
@@ -78,15 +111,11 @@ elsif File.exist?("#{hb}/meta2")
   new_array = [ "#{hb}/meta1", "#{hb}/meta2" ]
 elsif File.exist?("#{hb}/meta1")
   new_array = [ "#{hb}/meta1" ]
-else
-  new_array = [ "#{hb}/meta1" ]
 end
 
 # Update dfs_name_dir if changes have been detected.
-if !new_array.nil? && new_array.length > 0
-  node.set[:hadoop][:hdfs][:dfs_name_dir] = new_array
-  node.save
-end
+node.set[:hadoop][:hdfs][:dfs_name_dir] = new_array
+node.save
 
 #######################################################################
 # Format the hadoop file system.
@@ -109,17 +138,13 @@ if (!File.exists?("#{hb}/meta1/image"))
   # f) execute "hadoop fs -chown hdfs:hadoop /mapred/system"
   
   # Make sure the name node process is down.
-  # {start|stop|status|restart|try-restart|upgrade|rollback}
   service "hadoop-0.20-namenode" do
-    supports :start => true, :stop => true, :status => true, :restart => true
-    action :stop 
+    action :stop
   end 
   
   # Make sure the jobtracker service is up.
-  # {start|stop|status|restart|try-restart}
   service "hadoop-0.20-jobtracker" do
-    supports :start => true, :stop => true, :status => true, :restart => true
-    action [ :enable, :start ]
+    action :start
   end 
   
   bash "hadoop-hdfs-format" do
@@ -132,8 +157,7 @@ EOH
   # Make sure the name node process is up.
   # {start|stop|status|restart|try-restart|upgrade|rollback}
   service "hadoop-0.20-namenode" do
-    supports :start => true, :stop => true, :status => true, :restart => true
-    action [ :enable, :start ]
+    action :start
   end 
   
   bash "hadoop-hdfs-init" do
@@ -147,23 +171,18 @@ hadoop fs -chmod 0775 /mapred
 hadoop fs -chmod 0775 /mapred/system
 EOH
   end
-  
 else 
   Chef::Log.info("skipping hdfs format") if debug
 end
 
 # Start the namenode service.
-# {start|stop|status|restart|try-restart|upgrade|rollback}
 service "hadoop-0.20-namenode" do
-  supports :start => true, :stop => true, :status => true, :restart => true
-  action [ :enable, :start ]
+  action :start
 end
 
 # Start the jobtracker service.
-# {start|stop|status|restart|try-restart}
 service "hadoop-0.20-jobtracker" do
-  supports :start => true, :stop => true, :status => true, :restart => true
-  action [ :enable, :start ]
+  action :start
 end
 
 # Enables the Cloudera Service and Configuration Manager (SCM).
