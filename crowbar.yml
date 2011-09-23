@@ -285,7 +285,7 @@ locale_additions:
 
 rpms:
   repos:
-    - bare cloudera-cdh3 http://archive.cloudera.com/redhat/cdh/3/
+    - bare cloudera-cdh3 10 http://archive.cloudera.com/redhat/cdh/3/
   pkgs:
     - cloudera-scm-agent
     - cloudera-scm-server
