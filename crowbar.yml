@@ -293,3 +293,6 @@ rpms:
     - hadoop-0.20-secondarynamenode
     - hadoop-0.20-datanode
     - hadoop-0.20-tasktracker
+
+extra_files:
+  - http://download.oracle.com/otn-pub/java/jdk/6u27-b07/jdk-6u27-linux-x64-rpm.bin java
