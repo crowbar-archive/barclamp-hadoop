@@ -6,6 +6,10 @@
   %div.container
 
     %p
+      %label{ :for => :cloudera_enterprise_scm }= t('.cloudera_enterprise_scm')
+      = select_tag :cloudera_enterprise_scm, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp]["cloudera_enterprise_scm"]), :onchange => "update_value('cloudera_enterprise_scm', 'cloudera_enterprise_scm', 'string')"
+
+    %p
       %label{ :for => :fs_checkpoint_dir }= t('.fs_checkpoint_dir')
       %input#fs_checkpoint_dir{:type => "text", :name => "fs_checkpoint_dir", :'data-default' => @proposal.raw_data['attributes'][@proposal.barclamp][:core]["fs_checkpoint_dir"], :onchange => "update_value('core/fs_checkpoint_dir', 'fs_checkpoint_dir', 'string')"}
 

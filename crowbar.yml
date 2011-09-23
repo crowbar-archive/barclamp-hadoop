@@ -36,6 +36,7 @@ locale_additions:
           deployment: Deployment        
         edit_attributes:
           core_attributes: Hadoop Core Attributes
+          cloudera_enterprise_scm: Cloudera Enterprise Support
           fs_checkpoint_dir: fs_checkpoint_dir
           fs_checkpoint_edits_dir: fs_checkpoint_edits_dir
           fs_checkpoint_period: fs_checkpoint_period

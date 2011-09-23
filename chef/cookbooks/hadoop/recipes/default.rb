@@ -145,7 +145,6 @@ Chef::Log.info("secondary_node_ip #{secondary_node_ip}") if debug
 # The secondary namenode http server address and port. If the port is 0
 # then the server will start on a free port.
 node[:hadoop][:hdfs][:dfs_secondary_http_address] = "#{secondary_node_ip}:50090"
-
 node.save
 
 # Create hadoop_log_dir and set ownership/permissions (/var/log/hadoop). 
@@ -177,8 +176,8 @@ directory fs_s3_buffer_dir do
 end
 
 # Create mapred_system_dir and set ownership/permissions (/mapred/system).
-# Note : Recursive does not set the parent directory owner, group and permissions
-# correctly.
+# Directory recursive does not set the parent directory owner, group
+# and permissions correctly.
 mapred_system_dir = node[:hadoop][:mapred][:mapred_system_dir]
 make_dir_path(mapred_system_dir, mapred_owner, hadoop_group, "0775")
 # directory mapred_system_dir do
@@ -213,17 +212,9 @@ dfs_name_dir.each do |path|
   end
 end
 
-# The only services we ever want to automatically restart upon
-# a config change are these two so we define them up here.
-=begin
-service "hadoop-0.20-datanode" do
-  supports :status => true, :start => true, :stop => true, :restart => true
-end
-
-service "hadoop-0.20-tasktracker" do
-  supports :status => true, :start => true, :stop => true, :restart => true
-end
-=end
+#######################################################################
+# Process common hadoop related configuration templates.
+#######################################################################
 
 # Configure /etc/security/limits.conf.  
 # mapred      -    nofile     32768
@@ -242,8 +233,6 @@ template "/etc/hadoop/conf/masters" do
   group hadoop_group
   mode "0644"
   source "masters.erb"
-  #  notifies :restart, resources(:service => "hadoop-0.20-datanode")
-  #  notifies :restart, resources(:service => "hadoop-0.20-tasktracker")
 end
 
 # Configure the slave nodes.  
@@ -252,8 +241,6 @@ template "/etc/hadoop/conf/slaves" do
   group hadoop_group
   mode "0644"
   source "slaves.erb"
-  #  notifies :restart, resources(:service => "hadoop-0.20-datanode")
-  #  notifies :restart, resources(:service => "hadoop-0.20-tasktracker")
 end
 
 # Configure the hadoop core component.
@@ -262,8 +249,6 @@ template "/etc/hadoop/conf/core-site.xml" do
   group hadoop_group
   mode "0644"
   source "core-site.xml.erb"
-  #  notifies :restart, resources(:service => "hadoop-0.20-datanode")
-  #  notifies :restart, resources(:service => "hadoop-0.20-tasktracker")
 end
 
 # Configure the HDFS component.
@@ -272,7 +257,6 @@ template "/etc/hadoop/conf/hdfs-site.xml" do
   group hadoop_group
   mode "0644"
   source "hdfs-site.xml.erb"
-  #  notifies :restart, resources(:service => "hadoop-0.20-datanode")
 end
 
 # Configure the MAP/Reduce component.
@@ -281,7 +265,6 @@ template "/etc/hadoop/conf/mapred-site.xml" do
   group hadoop_group
   mode "0644"
   source "mapred-site.xml.erb"
-  #  notifies :restart, resources(:service => "hadoop-0.20-tasktracker")
 end
 
 # Configure the Hadoop ENV component.
@@ -290,8 +273,6 @@ template "/etc/hadoop/conf/hadoop-env.sh" do
   group hadoop_group
   mode "0755"
   source "hadoop-env.sh.erb"
-  #  notifies :restart, resources(:service => "hadoop-0.20-datanode")
-  #  notifies :restart, resources(:service => "hadoop-0.20-tasktracker")
 end
 
 # Configure hadoop-metrics.properties.

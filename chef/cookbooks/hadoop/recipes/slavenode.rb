@@ -25,10 +25,11 @@ require File.join(File.dirname(__FILE__), '../libraries/common')
 debug = node[:hadoop][:debug]
 Chef::Log.info("BEGIN hadoop:slavenode") if debug
 
-# Local variables
+# Local variables.
 hdfs_owner = node[:hadoop][:cluster][:hdfs_file_system_owner]
 mapred_owner = node[:hadoop][:cluster][:mapred_file_system_owner]
 hadoop_group = node[:hadoop][:cluster][:global_file_system_group]
+hdfs_group = node[:hadoop][:cluster][:hdfs_file_system_group]
 
 # Set the hadoop node type.
 node[:hadoop][:cluster][:node_type] = "slavenode"
@@ -44,21 +45,51 @@ package "hadoop-0.20-tasktracker" do
   action :install
 end
 
-# Define our services so we can can fire notify events against them.
+# Define our services so we can register notify events them.
 service "hadoop-0.20-datanode" do
   supports :start => true, :stop => true, :status => true, :restart => true
+  action :enable
+  # Subscribe to common configuration change events (default.rb).
+  subscribes :restart, resources(:template => "/etc/security/limits.conf")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/masters")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/slaves")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/core-site.xml")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/hdfs-site.xml")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/mapred-site.xml")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/hadoop-env.sh")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/hadoop-metrics.properties")
 end
 
+# Start the task tracker service.
 service "hadoop-0.20-tasktracker" do
   supports :start => true, :stop => true, :status => true, :restart => true
+  action :enable
+  # Subscribe to common configuration change events (default.rb).
+  subscribes :restart, resources(:template => "/etc/security/limits.conf")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/masters")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/slaves")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/core-site.xml")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/hdfs-site.xml")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/mapred-site.xml")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/hadoop-env.sh")
+  subscribes :restart, resources(:template => "/etc/hadoop/conf/hadoop-metrics.properties")
 end
 
 # Configure the data node disk mount points (dfs_data_dir).
 # These were set by configure-disks.rb. 
 dfs_data_dir = Array.new
-node[:hadoop][:devices].each do |rec| 
-  Chef::Log.info("mount_point #{rec[:mount_point]}") if debug
-  dfs_data_dir << rec[:mount_point]
+node[:hadoop][:devices].each do |rec|
+  if (rec == nil || rec[:mount_point] == nil || rec[:mount_point].empty?)
+    Chef::Log.error("Invalid mount point object - ignoring")
+    next
+  end
+  dir = rec[:mount_point] 
+  if File.exists?(dir) && File.directory?(dir)
+    Chef::Log.info("Update mount point #{dir}") if debug
+    dfs_data_dir << dir
+  else
+    Chef::Log.error("Cannot locate mount point directory #{dir}")
+  end
 end
 node[:hadoop][:hdfs][:dfs_data_dir] = dfs_data_dir 
 
@@ -69,13 +100,14 @@ dfs_data_dir = node[:hadoop][:hdfs][:dfs_data_dir]
 dfs_data_dir.each do |path|
   directory path do
     owner hdfs_owner
-    group hadoop_group
+    group hdfs_group
     mode "0755"
     recursive true
     action :create
     notifies :restart, resources(:service => "hadoop-0.20-datanode")
     notifies :restart, resources(:service => "hadoop-0.20-tasktracker")
   end
+  
   # Make the lost+found file readable by HDFS or it will complain
   # about read access when the data node processes are started.
   lost_found = "#{path}/lost+found"
@@ -101,16 +133,14 @@ mapred_local_dir.each do |path|
   end
 end
 
-# Start the data node services.
+# Start the data node service.
 service "hadoop-0.20-datanode" do
-  supports :start => true, :stop => true, :status => true, :restart => true
-  action [ :enable, :start ]
+  action :start
 end
 
-# Start the task tracker.
+# Start the task tracker service.
 service "hadoop-0.20-tasktracker" do
-  supports :start => true, :stop => true, :status => true, :restart => true
-  action [ :enable, :start ]
+  action :start
 end
 
 # Enables the Cloudera Service and Configuration Manager (SCM).
