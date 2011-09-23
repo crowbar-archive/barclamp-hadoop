@@ -283,6 +283,8 @@ locale_additions:
           user_max_jobs_default: user_max_jobs_default   
 
 rpms:
+  repos:
+    - bare http://archive.cloudera.com/redhat/cdh/3/
   pkgs:
     - cloudera-scm-agent
     - cloudera-scm-server
