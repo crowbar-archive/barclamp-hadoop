@@ -284,6 +284,8 @@ locale_additions:
           user_max_jobs_default: user_max_jobs_default   
 
 rpms:
+  repos:
+    - bare cloudera-cdh3 10 http://archive.cloudera.com/redhat/cdh/3/
   pkgs:
     - cloudera-scm-agent
     - cloudera-scm-server
@@ -294,3 +296,6 @@ rpms:
     - hadoop-0.20-secondarynamenode
     - hadoop-0.20-datanode
     - hadoop-0.20-tasktracker
+
+extra_files:
+  - http://download.oracle.com/otn-pub/java/jdk/6u27-b07/jdk-6u27-linux-x64-rpm.bin java
