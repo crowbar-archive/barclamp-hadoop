@@ -50,6 +50,9 @@ service "hadoop-0.20-datanode" do
   supports :start => true, :stop => true, :status => true, :restart => true
   action :enable
   # Subscribe to common configuration change events (default.rb).
+  subscribes :restart, resources(:directory => node[:hadoop][:env][:hadoop_log_dir])
+  subscribes :restart, resources(:directory => node[:hadoop][:core][:hadoop_tmp_dir])
+  subscribes :restart, resources(:directory => node[:hadoop][:core][:fs_s3_buffer_dir])
   subscribes :restart, resources(:template => "/etc/security/limits.conf")
   subscribes :restart, resources(:template => "/etc/hadoop/conf/masters")
   subscribes :restart, resources(:template => "/etc/hadoop/conf/slaves")
@@ -65,6 +68,9 @@ service "hadoop-0.20-tasktracker" do
   supports :start => true, :stop => true, :status => true, :restart => true
   action :enable
   # Subscribe to common configuration change events (default.rb).
+  subscribes :restart, resources(:directory => node[:hadoop][:env][:hadoop_log_dir])
+  subscribes :restart, resources(:directory => node[:hadoop][:core][:hadoop_tmp_dir])
+  subscribes :restart, resources(:directory => node[:hadoop][:core][:fs_s3_buffer_dir])
   subscribes :restart, resources(:template => "/etc/security/limits.conf")
   subscribes :restart, resources(:template => "/etc/hadoop/conf/masters")
   subscribes :restart, resources(:template => "/etc/hadoop/conf/slaves")
@@ -80,7 +86,7 @@ end
 dfs_data_dir = Array.new
 node[:hadoop][:devices].each do |rec|
   if (rec == nil || rec[:mount_point] == nil || rec[:mount_point].empty?)
-    Chef::Log.error("Invalid mount point object - ignoring")
+    Chef::Log.error("Invalid mount point - ignoring")
     next
   end
   dir = rec[:mount_point] 
@@ -91,6 +97,8 @@ node[:hadoop][:devices].each do |rec|
     Chef::Log.error("Cannot locate mount point directory #{dir}")
   end
 end
+dfs_data_dir.sort
+Chef::Log.info("dfs_data_dir [" + dfs_data_dir.join(",") + "]") if debug
 node[:hadoop][:hdfs][:dfs_data_dir] = dfs_data_dir 
 
 # Set the dfs_data_dir ownership/permissions (/mnt/hdfs/hdfs01/data1).

@@ -49,6 +49,9 @@ service "hadoop-0.20-namenode" do
   supports :start => true, :stop => true, :status => true, :restart => true
   action :enable
   # Subscribe to common configuration change events (default.rb).
+  subscribes :restart, resources(:directory => node[:hadoop][:env][:hadoop_log_dir])
+  subscribes :restart, resources(:directory => node[:hadoop][:core][:hadoop_tmp_dir])
+  subscribes :restart, resources(:directory => node[:hadoop][:core][:fs_s3_buffer_dir])
   subscribes :restart, resources(:template => "/etc/security/limits.conf")
   subscribes :restart, resources(:template => "/etc/hadoop/conf/masters")
   subscribes :restart, resources(:template => "/etc/hadoop/conf/slaves")
@@ -64,6 +67,9 @@ service "hadoop-0.20-jobtracker" do
   supports :start => true, :stop => true, :status => true, :restart => true
   action :enable
   # Subscribe to common configuration change events (default.rb).
+  subscribes :restart, resources(:directory => node[:hadoop][:env][:hadoop_log_dir])
+  subscribes :restart, resources(:directory => node[:hadoop][:core][:hadoop_tmp_dir])
+  subscribes :restart, resources(:directory => node[:hadoop][:core][:fs_s3_buffer_dir])
   subscribes :restart, resources(:template => "/etc/security/limits.conf")
   subscribes :restart, resources(:template => "/etc/hadoop/conf/masters")
   subscribes :restart, resources(:template => "/etc/hadoop/conf/slaves")
@@ -94,36 +100,28 @@ template "/etc/hadoop/conf/fair-scheduler.xml" do
   notifies :restart, resources(:service => "hadoop-0.20-jobtracker")
 end
 
-# Check the dfs_name_dir configuration. Data partitions are numbered 
-# 1-N (i.e. /mnt/hdfs/hdfs01/meta1 - /mnt/hdfs/hdfs01/metaN).  
-new_array = Array.new
 dfs_base_dir = node[:hadoop][:hdfs][:dfs_base_dir]  
 hb = "#{dfs_base_dir}/hdfs01"
-if File.exist?("#{hb}/meta6")
-  new_array = ["#{hb}/meta1", "#{hb}/meta2", "#{hb}/meta3", "#{hb}/meta4", "#{hb}/meta5", "#{hb}/meta6" ] 
-elsif File.exist?("#{hb}/meta5")
-  new_array = [ "#{hb}/meta1", "#{hb}/meta2", "#{hb}/meta3", "#{hb}/meta4", "#{hb}/meta5" ] 
-elsif File.exist?("#{hb}/meta4")
-  new_array = [ "#{hb}/meta1", "#{hb}/meta2", "#{hb}/meta3", "#{hb}/meta4" ]
-elsif File.exist?("#{hb}/meta3")
-  new_array = [ "#{hb}/meta1", "#{hb}/meta2", "#{hb}/meta3" ]
-elsif File.exist?("#{hb}/meta2")
-  new_array = [ "#{hb}/meta1", "#{hb}/meta2" ]
-elsif File.exist?("#{hb}/meta1")
-  new_array = [ "#{hb}/meta1" ]
-end
 
-# Update dfs_name_dir if changes have been detected.
-node.set[:hadoop][:hdfs][:dfs_name_dir] = new_array
+=begin
+# Set the dfs_name_dir configuration. Data partitions are numbered 
+# 1-N (i.e. /mnt/hdfs/hdfs01/meta1 - /mnt/hdfs/hdfs01/metaN).  
+new_array = Array.new
+dir_list = %x{ls -d1 #{hb}/meta*}
+dfs_name_dir = dir_list.split("\n")
+dfs_name_dir.sort
+Chef::Log.info("dfs_name_dir [" + dfs_name_dir.join(",") + "]") if debug
+node.set[:hadoop][:hdfs][:dfs_name_dir] = dfs_name_dir
+=end
+
 node.save
 
 #######################################################################
-# Format the hadoop file system.
+# Format the hadoop file system(s).
 # exec 'hadoop namenode -format'.
 # You can't be root (or you need to specify HADOOP_NAMENODE_USER).
 #######################################################################
-
-if (!File.exists?("#{hb}/meta1/image")) 
+if (!File.exists?("#{hb}/meta1/current/VERSION")) 
   
   # Initialize HDFS.
   # HDFS cannot run as root, so override the process owner (hdfs).

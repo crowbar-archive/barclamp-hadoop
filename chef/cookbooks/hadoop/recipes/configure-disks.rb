@@ -72,7 +72,7 @@ to_use_disks.each { |k,v|
 }
 
 execute "sync" do
-  command "sync ; sleep 3"
+  command "sync ; sleep 5"
 end
 
 # Create all the actions required to format all the file systems, but

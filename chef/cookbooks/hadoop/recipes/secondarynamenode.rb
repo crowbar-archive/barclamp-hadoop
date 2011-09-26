@@ -49,6 +49,9 @@ service "hadoop-0.20-secondarynamenode" do
   supports :start => true, :stop => true, :status => true, :restart => true
   action :enable
   # Subscribe to common configuration change events (default.rb).
+  subscribes :restart, resources(:directory => node[:hadoop][:env][:hadoop_log_dir])
+  subscribes :restart, resources(:directory => node[:hadoop][:core][:hadoop_tmp_dir])
+  subscribes :restart, resources(:directory => node[:hadoop][:core][:fs_s3_buffer_dir])
   subscribes :restart, resources(:template => "/etc/security/limits.conf")
   subscribes :restart, resources(:template => "/etc/hadoop/conf/masters")
   subscribes :restart, resources(:template => "/etc/hadoop/conf/slaves")
