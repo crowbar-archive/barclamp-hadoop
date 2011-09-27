@@ -266,8 +266,8 @@
       "elements": {},
       "element_order": [
         [ 
-          "hadoop-secondarynamenode",
           "hadoop-masternamenode",
+          "hadoop-secondarynamenode",
           "hadoop-slavenode",
           "hadoop-edgenode"
         ]

@@ -42,7 +42,7 @@ Chef::Log.info("found disk: #{to_use_disks.keys.join(':')}") if debug
 
 # Partition the disks.
 node[:hadoop][:devices] = []
-disk_cnt =0
+disk_cnt = 0
 to_use_disks.each { |k,v| 
   
   # By default, we will format first partition.
@@ -52,10 +52,15 @@ to_use_disks.each { |k,v|
   
   # Protect against OS's that confuse ohai. if the device isn't there,
   # don't try to use it.
-  if File.exists?(target_dev) == false
+  if ! File.exists?(target_dev)
     Chef::Log.warn("device: #{target_dev} doesn't seem to exist. ignoring")
     next
   end
+  
+  # Publish the disk devices. dfs_base_dir=/mnt/hdfs
+  disk_cnt = disk_cnt +1    
+  dfs_base_dir = node[:hadoop][:hdfs][:dfs_base_dir] 
+  mount_point = "#{dfs_base_dir}/hdfs01/data#{disk_cnt}"
   
   hadoop_disk target_dev do
     part [{ :type => "ext3", :size => :remaining} ]
@@ -63,11 +68,6 @@ to_use_disks.each { |k,v|
     cmd "/opt/parted"
   end
   
-  # Publish the disk devices.
-  disk_cnt = disk_cnt +1    
-  # dfs_base_dir (/mnt/hdfs)
-  dfs_base_dir = node[:hadoop][:hdfs][:dfs_base_dir] 
-  mount_point = "#{dfs_base_dir}/hdfs01/data#{disk_cnt}"
   node[:hadoop][:devices] <<  {:name=>target_dev_part, :size=> :remaining, :mount_point=> mount_point}
 }
 
