@@ -20,9 +20,9 @@ barclamp:
   display: Hadoop
   version: 0
   requires:
-    - crowbar
-    - ganglia
-    - nagios
+    - @crowbar
+  member:
+    - hadoop
 
 crowbar:
   layout: 1
