@@ -13,7 +13,7 @@
           "required": true,
           "mapping": {
             "debug":  { "type": "bool", "required": true},
-            "cloudera_enterprise_scm":  { "type": "bool", "required": true},
+            "cloudera_enterprise_scm":  { "type": "str", "required": true},
             "admin_ip_eval": { "type": "str", "required": true },
             "admin_interface_eval": { "type": "str", "required": true },
             "core": {

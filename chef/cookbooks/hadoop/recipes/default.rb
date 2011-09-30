@@ -16,6 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+# Author: Paul Webster
+#
 
 require File.join(File.dirname(__FILE__), '../libraries/common')
 
@@ -103,10 +105,10 @@ end
 node[:hadoop][:cluster][:slave_nodes] = slave_nodes
 
 if debug
-  Chef::Log.info("MASTER_NAME_NODES    {" + node[:hadoop][:cluster][:master_name_nodes] .to_s + "}")
-  Chef::Log.info("SECONDARY_NAME_NODES {" + node[:hadoop][:cluster][:secondary_name_nodes].to_s + "}")
-  Chef::Log.info("EDGE_NODES           {" + node[:hadoop][:cluster][:edge_nodes].to_s + "}")
-  Chef::Log.info("SLAVE_NODES          {" + node[:hadoop][:cluster][:slave_nodes].to_s + "}")
+  Chef::Log.info("MASTER_NAME_NODES    {" + node[:hadoop][:cluster][:master_name_nodes] .join(",") + "}")
+  Chef::Log.info("SECONDARY_NAME_NODES {" + node[:hadoop][:cluster][:secondary_name_nodes].join(",") + "}")
+  Chef::Log.info("EDGE_NODES           {" + node[:hadoop][:cluster][:edge_nodes].join(",") + "}")
+  Chef::Log.info("SLAVE_NODES          {" + node[:hadoop][:cluster][:slave_nodes].join(",") + "}")
 end
 
 # Set the authoritative name node URI (i.e. hdfs://admin.example.com:8020).

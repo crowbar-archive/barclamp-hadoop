@@ -4,7 +4,7 @@
   "attributes": {
     "hadoop": {
       "debug": true,
-      "cloudera_enterprise_scm": false,
+      "cloudera_enterprise_scm": "false",
 	  "admin_ip_eval": "Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").address",
       "admin_interface_eval": "Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, \"admin\").interface",
       "core": {

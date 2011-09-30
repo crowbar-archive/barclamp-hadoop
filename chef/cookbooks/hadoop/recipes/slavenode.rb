@@ -16,6 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+# Author: Paul Webster
+#
 
 require File.join(File.dirname(__FILE__), '../libraries/common')
 
@@ -153,7 +155,7 @@ end
 
 # Enables the Cloudera Service and Configuration Manager (SCM).
 # Requires the installation of the Cloudera Enterprise Edition.
-if node[:hadoop][:cloudera_enterprise_scm]
+if node[:hadoop][:cloudera_enterprise_scm] == "true"
   include_recipe 'hadoop::cloudera-scm-agent'
 end
 
