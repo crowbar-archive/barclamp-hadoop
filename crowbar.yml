@@ -286,6 +286,8 @@ locale_additions:
 rpms:
   repos:
     - bare cloudera-cdh3 10 http://archive.cloudera.com/redhat/cdh/3/
+    # Repo for Hue and cloudera scm stuff.  Dell Internal!
+    - bare cloudera-enterprise 10 http://10.9.244.31:3389/mirrors/cloudera/enterprise/redhat/5/x86_64/RPMS/
   pkgs:
     - cloudera-scm-agent
     - cloudera-scm-server
