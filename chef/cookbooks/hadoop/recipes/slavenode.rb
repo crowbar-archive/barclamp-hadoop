@@ -19,13 +19,11 @@
 # Author: Paul Webster
 #
 
-require File.join(File.dirname(__FILE__), '../libraries/common')
-
 #######################################################################
 # Begin recipe transactions
 #######################################################################
 debug = node[:hadoop][:debug]
-Chef::Log.info("BEGIN hadoop:slavenode") if debug
+Chef::Log.info("HADOOP : BEGIN hadoop:slavenode") if debug
 
 # Local variables.
 hdfs_owner = node[:hadoop][:cluster][:hdfs_file_system_owner]
@@ -35,7 +33,6 @@ hdfs_group = node[:hadoop][:cluster][:hdfs_file_system_group]
 
 # Set the hadoop node type.
 node[:hadoop][:cluster][:node_type] = "slavenode"
-node.save
 
 # Install the data node package.
 package "hadoop-0.20-datanode" do
@@ -50,7 +47,6 @@ end
 # Define our services so we can register notify events them.
 service "hadoop-0.20-datanode" do
   supports :start => true, :stop => true, :status => true, :restart => true
-  action :enable
   # Subscribe to common configuration change events (default.rb).
   subscribes :restart, resources(:directory => node[:hadoop][:env][:hadoop_log_dir])
   subscribes :restart, resources(:directory => node[:hadoop][:core][:hadoop_tmp_dir])
@@ -68,7 +64,6 @@ end
 # Start the task tracker service.
 service "hadoop-0.20-tasktracker" do
   supports :start => true, :stop => true, :status => true, :restart => true
-  action :enable
   # Subscribe to common configuration change events (default.rb).
   subscribes :restart, resources(:directory => node[:hadoop][:env][:hadoop_log_dir])
   subscribes :restart, resources(:directory => node[:hadoop][:core][:hadoop_tmp_dir])
@@ -87,21 +82,22 @@ end
 # These were set by configure-disks.rb. 
 dfs_data_dir = Array.new
 node[:hadoop][:devices].each do |rec|
-  if (rec == nil || rec[:mount_point] == nil || rec[:mount_point].empty?)
-    Chef::Log.error("Invalid mount point - ignoring")
+  if (rec.nil? || rec[:mount_point].nil? || rec[:mount_point].empty?)
+    Chef::Log.error("HADOOP : Invalid mount point - ignoring")
     next
   end
   dir = rec[:mount_point] 
   if File.exists?(dir) && File.directory?(dir)
-    Chef::Log.info("Update mount point #{dir}") if debug
+    Chef::Log.info("HADOOP : Use mount point #{dir}") if debug
     dfs_data_dir << dir
   else
-    Chef::Log.error("Cannot locate mount point directory #{dir}")
+    Chef::Log.error("HADOOP : Cannot locate mount point directory #{dir}")
   end
 end
 dfs_data_dir.sort
-Chef::Log.info("dfs_data_dir [" + dfs_data_dir.join(",") + "]") if debug
+Chef::Log.info("HADOOP : dfs_data_dir [" + dfs_data_dir.join(",") + "]") if debug
 node[:hadoop][:hdfs][:dfs_data_dir] = dfs_data_dir 
+node.save
 
 # Set the dfs_data_dir ownership/permissions (/mnt/hdfs/hdfs01/data1).
 # The directories are already created by the configure-disks.rb script,
@@ -143,14 +139,29 @@ mapred_local_dir.each do |path|
   end
 end
 
-# Start the data node service.
-service "hadoop-0.20-datanode" do
-  action :start
-end
-
-# Start the task tracker service.
-service "hadoop-0.20-tasktracker" do
-  action :start
+if node[:hadoop][:cluster][:valid_config]
+  Chef::Log.info("HADOOP : CONFIGURATION VALID - STARTING DATANODE SERVICES")
+  # Start the data node service.
+  service "hadoop-0.20-datanode" do
+    action [ :enable, :start ] 
+  end
+  
+  # Start the task tracker service.
+  service "hadoop-0.20-tasktracker" do
+    action [ :enable, :start ] 
+  end
+else
+  Chef::Log.info("HADOOP : CONFIGURATION INVALID - STOPPING DATANODE SERVICES")
+  
+  # Stop the data node service.
+  service "hadoop-0.20-datanode" do
+    action [ :disable, :stop ] 
+  end
+  
+  # Stop the task tracker service.
+  service "hadoop-0.20-tasktracker" do
+    action [ :disable, :stop ] 
+  end
 end
 
 # Enables the Cloudera Service and Configuration Manager (SCM).
@@ -162,4 +173,4 @@ end
 #######################################################################
 # End of recipe transactions
 #######################################################################
-Chef::Log.info("END hadoop:slavenode") if debug
+Chef::Log.info("HADOOP : END hadoop:slavenode") if debug

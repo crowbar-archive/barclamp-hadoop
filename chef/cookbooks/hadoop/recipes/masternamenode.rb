@@ -19,13 +19,11 @@
 # Author: Paul Webster
 #
 
-require File.join(File.dirname(__FILE__), '../libraries/common')
-
 #######################################################################
 # Begin recipe transactions
 #######################################################################
 debug = node[:hadoop][:debug]
-Chef::Log.info("BEGIN hadoop:masternamenode") if debug
+Chef::Log.info("HADOOP : BEGIN hadoop:masternamenode") if debug
 
 # Local variables
 process_owner = node[:hadoop][:cluster][:process_file_system_owner]
@@ -49,7 +47,6 @@ end
 # Define our services so we can register notify events them.
 service "hadoop-0.20-namenode" do
   supports :start => true, :stop => true, :status => true, :restart => true
-  action :enable
   # Subscribe to common configuration change events (default.rb).
   subscribes :restart, resources(:directory => node[:hadoop][:env][:hadoop_log_dir])
   subscribes :restart, resources(:directory => node[:hadoop][:core][:hadoop_tmp_dir])
@@ -67,7 +64,6 @@ end
 # Start the jobtracker service.
 service "hadoop-0.20-jobtracker" do
   supports :start => true, :stop => true, :status => true, :restart => true
-  action :enable
   # Subscribe to common configuration change events (default.rb).
   subscribes :restart, resources(:directory => node[:hadoop][:env][:hadoop_log_dir])
   subscribes :restart, resources(:directory => node[:hadoop][:core][:hadoop_tmp_dir])
@@ -118,51 +114,60 @@ node.set[:hadoop][:hdfs][:dfs_name_dir] = dfs_name_dir
 
 node.save
 
-#######################################################################
-# Format the hadoop file system(s).
-# exec 'hadoop namenode -format'.
-# You can't be root (or you need to specify HADOOP_NAMENODE_USER).
-#######################################################################
-if (!File.exists?("#{hb}/meta1/current/VERSION")) 
+if node[:hadoop][:cluster][:valid_config]
   
-  # Initialize HDFS.
-  # HDFS cannot run as root, so override the process owner (hdfs).
-  # Execution sequence is important to avoid locking conditions;
-  # a) Name node process must be down, job tracker process must be up.
-  #    service hadoop-0.20-namenode stop
-  #    service hadoop-0.20-jobtracker start
-  # b) execute "echo 'Y' | hadoop namenode -format"
-  # c) bring the name node process up
-  #    service hadoop-0.20-namenode start
-  # e) execute "hadoop fs -mkdir /mapred/system"
-  # f) execute "hadoop fs -chown hdfs:hadoop /mapred/system"
+  Chef::Log.info("HADOOP : CONFIGURATION VALID - STARTING MASTER NAME NODE SERVICES")
   
-  # Make sure the name node process is down.
-  service "hadoop-0.20-namenode" do
-    action :stop
-  end 
+  #######################################################################
+  # Format the hadoop file system(s).
+  # exec 'hadoop namenode -format'.
+  # You can't be root (or you need to specify HADOOP_NAMENODE_USER).
+  #######################################################################
   
-  # Make sure the jobtracker service is up.
-  service "hadoop-0.20-jobtracker" do
-    action :start
-  end 
-  
-  bash "hadoop-hdfs-format" do
-    user hdfs_owner
-    code <<-EOH
+  if !node[:hadoop][:cluster][:hdfs_configured]
+    
+    if (!File.exists?("#{hb}/meta1/current/VERSION")) 
+      
+      Chef::Log.info("HADOOP : RUNNING HDFS NOW") if debug
+      
+      # Initialize HDFS.
+      # HDFS cannot run as root, so override the process owner (hdfs).
+      # Execution sequence is important to avoid locking conditions;
+      # a) Name node process must be down, job tracker process must be up.
+      #    service hadoop-0.20-namenode stop
+      #    service hadoop-0.20-jobtracker start
+      # b) execute "echo 'Y' | hadoop namenode -format"
+      # c) bring the name node process up
+      #    service hadoop-0.20-namenode start
+      # e) execute "hadoop fs -mkdir /mapred/system"
+      # f) execute "hadoop fs -chown hdfs:hadoop /mapred/system"
+      
+      # Make sure the name node process is down.
+      service "hadoop-0.20-namenode" do
+        action :stop
+      end 
+      
+      # Make sure the jobtracker service is up.
+      service "hadoop-0.20-jobtracker" do
+        action :start
+      end 
+      
+      bash "hadoop-hdfs-format" do
+        user hdfs_owner
+        code <<-EOH
 echo 'Y' | hadoop namenode -format
 EOH
-  end
-  
-  # Make sure the name node process is up.
-  # {start|stop|status|restart|try-restart|upgrade|rollback}
-  service "hadoop-0.20-namenode" do
-    action :start
-  end 
-  
-  bash "hadoop-hdfs-init" do
-    user hdfs_owner
-    code <<-EOH
+      end
+      
+      # Make sure the name node process is up.
+      # {start|stop|status|restart|try-restart|upgrade|rollback}
+      service "hadoop-0.20-namenode" do
+        action :start
+      end 
+      
+      bash "hadoop-hdfs-init" do
+        user hdfs_owner
+        code <<-EOH
 hadoop fs -mkdir /mapred
 hadoop fs -mkdir /mapred/system
 hadoop fs -chown #{mapred_owner}:#{hadoop_group} /mapred
@@ -170,19 +175,43 @@ hadoop fs -chown #{mapred_owner}:#{hadoop_group} /mapred/system
 hadoop fs -chmod 0775 /mapred
 hadoop fs -chmod 0775 /mapred/system
 EOH
+      end
+      
+    else 
+      Chef::Log.info("HADOOP : SKIPPING HDFS FORMAT(1)") if debug
+    end
+    
+    node[:hadoop][:cluster][:hdfs_configured] = true    
+    node.save
+    
+  else 
+    Chef::Log.info("HADOOP : SKIPPING HDFS FORMAT(2)") if debug
   end
-else 
-  Chef::Log.info("skipping hdfs format") if debug
-end
-
-# Start the namenode service.
-service "hadoop-0.20-namenode" do
-  action :start
-end
-
-# Start the jobtracker service.
-service "hadoop-0.20-jobtracker" do
-  action :start
+  
+  # Start the namenode service.
+  service "hadoop-0.20-namenode" do
+    action [ :enable, :start ] 
+  end
+  
+  # Start the jobtracker service.
+  service "hadoop-0.20-jobtracker" do
+    action [ :enable, :start ] 
+  end
+  
+else
+  
+  Chef::Log.info("HADOOP : CONFIGURATION INVALID - STOPPING MASTER NAME NODE SERVICES")
+  
+  # Start the namenode service.
+  service "hadoop-0.20-namenode" do
+    action [ :disable, :stop ] 
+  end
+  
+  # Start the jobtracker service.
+  service "hadoop-0.20-jobtracker" do
+    action [ :disable, :stop ] 
+  end
+  
 end
 
 # Enables the Cloudera Service and Configuration Manager (SCM).
@@ -194,4 +223,4 @@ end
 #######################################################################
 # End of recipe transactions
 #######################################################################
-Chef::Log.info("END hadoop:masternamenode") if debug
+Chef::Log.info("HADOOP : END hadoop:masternamenode") if debug

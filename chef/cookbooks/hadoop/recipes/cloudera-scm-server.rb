@@ -19,13 +19,11 @@
 # Author: Paul Webster
 #
 
-require File.join(File.dirname(__FILE__), '../libraries/common')
-
 #######################################################################
 # Begin recipe transactions
 #######################################################################
 debug = node[:hadoop][:debug]
-Chef::Log.info("BEGIN hadoop:cloudera-scm-server") if debug
+Chef::Log.info("HADOOP : BEGIN hadoop:cloudera-scm-server") if debug
 
 # Install the Cloudera Service and Configuration Manager (SCM) server.
 package "cloudera-scm-server" do
@@ -35,4 +33,4 @@ end
 #######################################################################
 # End of recipe transactions
 #######################################################################
-Chef::Log.info("END hadoop:cloudera-scm-server") if debug
+Chef::Log.info("HADOOP : END hadoop:cloudera-scm-server") if debug
