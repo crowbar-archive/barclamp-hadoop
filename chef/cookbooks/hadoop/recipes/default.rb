@@ -39,18 +39,6 @@ package "jdk" do
   action :install
 end
 
-# Make sure that ip6tables is off.
-bash "Make sure ip6tables is off" do
-  code "/sbin/chkconfig ip6tables off"
-  only_if "/sbin/chkconfig --list ip6tables | grep -q on"
-end
-
-# Make sure that ip6tables service is off
-bash "Make sure ip6tables service is off" do
-  code "service ip6tables stop"
-  not_if "service ip6tables status | grep -q stopped"
-end
-
 # Install the hadoop base package.
 package "hadoop-0.20" do
   action :install
