@@ -26,10 +26,8 @@ debug = node[:hadoop][:debug]
 Chef::Log.info("HADOOP : BEGIN hadoop:configure-disks") if debug
 
 if !node[:hadoop][:cluster][:disk_configured]
-  
   Chef::Log.info("HADOOP : CONFIGURING DISKS NOW") 
   node[:hadoop][:cluster][:disk_configured] = true
-  node.save
   
   # Install parted utility program.
   cookbook_file "/opt/parted" do
@@ -64,7 +62,7 @@ if !node[:hadoop][:cluster][:disk_configured]
     end
     
     # Publish the disk devices. dfs_base_dir=/mnt/hdfs
-    disk_cnt = disk_cnt +1    
+    disk_cnt = disk_cnt + 1    
     dfs_base_dir = node[:hadoop][:hdfs][:dfs_base_dir] 
     mount_point = "#{dfs_base_dir}/hdfs01/data#{disk_cnt}"
     
@@ -74,7 +72,7 @@ if !node[:hadoop][:cluster][:disk_configured]
       cmd "/opt/parted"
     end
     
-    node[:hadoop][:devices] <<  {:name=>target_dev_part, :size=> :remaining, :mount_point=> mount_point}
+    node[:hadoop][:devices] <<  {:name => target_dev_part, :size => :remaining, :mount_point => mount_point}
   }
   
   execute "sync" do
@@ -89,7 +87,7 @@ if !node[:hadoop][:cluster][:disk_configured]
     a = execute "mkfs_ext3 #{k[:name]}" do
       command "echo 'formatting #{k[:name]}' ; mkfs.ext3 -F #{k[:name]}"    
       returns [0, 1]
-      not_if "tune2fs -l #{k[:name]}"  # if there's a superblock - assume good.
+      not_if "tune2fs -l #{k[:name]}"  # if there's a superblock - assume it's good.
       action :nothing
     end
     actions << a
@@ -123,6 +121,8 @@ if !node[:hadoop][:cluster][:disk_configured]
       action [:mount, :enable]
     end  
   }
+  
+  node.save
 else
   Chef::Log.info("HADOOP : DISK ALREADY CONFIGURED - SKIPPING") 
 end

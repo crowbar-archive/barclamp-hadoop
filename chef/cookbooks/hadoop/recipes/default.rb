@@ -105,7 +105,7 @@ end
 node[:hadoop][:cluster][:edge_nodes] = edge_nodes
 
 # Find the slave nodes. 
-Chef::Log.info("env filter [#{env_filter}]") if debug
+Chef::Log.info("HADOOP : env filter [#{env_filter}]") if debug
 slave_nodes = Array.new
 search(:node, "roles:hadoop-slavenode") do |nslave|
   # search(:node, "roles:hadoop-slavenode#{env_filter}") do |nslave|

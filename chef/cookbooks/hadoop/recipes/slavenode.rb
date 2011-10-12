@@ -88,10 +88,10 @@ node[:hadoop][:devices].each do |rec|
   end
   dir = rec[:mount_point] 
   if File.exists?(dir) && File.directory?(dir)
-    Chef::Log.info("HADOOP : Use mount point #{dir}") if debug
+    Chef::Log.info("HADOOP : Found mount point #{dir}") if debug
     dfs_data_dir << dir
   else
-    Chef::Log.error("HADOOP : Cannot locate mount point directory #{dir}")
+    Chef::Log.error("HADOOP : Cannot locate mount point #{dir}")
   end
 end
 dfs_data_dir.sort
