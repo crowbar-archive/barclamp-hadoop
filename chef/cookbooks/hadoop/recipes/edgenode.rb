@@ -19,13 +19,11 @@
 # Author: Paul Webster
 #
 
-require File.join(File.dirname(__FILE__), '../libraries/common')
-
 #######################################################################
 # Begin recipe transactions
 #######################################################################
 debug = node[:hadoop][:debug]
-Chef::Log.info("BEGIN hadoop:edgenode") if debug
+Chef::Log.info("HADOOP : BEGIN hadoop:edgenode") if debug
 
 # Set the hadoop node type.
 node[:hadoop][:cluster][:node_type] = "edgenode"
@@ -34,4 +32,4 @@ node.save
 #######################################################################
 # End of recipe transactions
 #######################################################################
-Chef::Log.info("END hadoop:edgenode") if debug
+Chef::Log.info("HADOOP : END hadoop:edgenode") if debug

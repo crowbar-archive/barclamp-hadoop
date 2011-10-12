@@ -19,13 +19,11 @@
 # Author: Paul Webster
 #
 
-require File.join(File.dirname(__FILE__), '../libraries/common')
-
 #######################################################################
 # Begin recipe transactions
 #######################################################################
 debug = node[:hadoop][:debug]
-Chef::Log.info("BEGIN hadoop:default") if debug
+Chef::Log.info("HADOOP : BEGIN hadoop:default") if debug
 
 # Local variables
 process_owner = node[:hadoop][:cluster][:process_file_system_owner]
@@ -58,12 +56,18 @@ package "hadoop-0.20" do
   action :install
 end
 
+# Logic to validate the cluster configuration so we don't attempt
+# to start hadoop processes while the cluster is in an invalid state
+# (i.e. deployment state transition).
+node[:hadoop][:cluster][:valid_config] = true
+
 # Find the master name nodes (there should only be one). 
 master_name_nodes = Array.new
 master_name_node_objects = Array.new
-search(:node, "roles:hadoop-masternamenode#{env_filter}") do |nmas|
+search(:node, "roles:hadoop-masternamenode") do |nmas|
+  # search(:node, "roles:hadoop-masternamenode#{env_filter}") do |nmas|
   if !nmas[:fqdn].nil? && !nmas[:fqdn].empty?
-    Chef::Log.info("MASTER [#{nmas[:fqdn]}") if debug
+    Chef::Log.info("HADOOP : MASTER [#{nmas[:fqdn]}") if debug
     master_name_nodes << nmas[:fqdn]
     master_name_node_objects << nmas
   end
@@ -72,17 +76,20 @@ node[:hadoop][:cluster][:master_name_nodes] = master_name_nodes
 
 # Check for errors
 if master_name_nodes.length == 0
-  Chef::Log.info("WARNING - Cannot find Hadoop master name node")
+  Chef::Log.info("HADOOP : WARNING - Cannot find Hadoop master name node")
+  node[:hadoop][:cluster][:valid_config] = false
 elsif master_name_nodes.length > 1
-  Chef::Log.info("WARNING - More than one master name node found, using #{master_name_nodes[0]}")
+  Chef::Log.info("HADOOP : WARNING - More than one master name node found")
+  node[:hadoop][:cluster][:valid_config] = false
 end
 
 # Find the secondary name nodes (there should only be one). 
 secondary_name_nodes = Array.new
 secondary_name_node_objects = Array.new
-search(:node, "roles:hadoop-secondarynamenode#{env_filter}") do |nsec|
+search(:node, "roles:hadoop-secondarynamenode") do |nsec|
+  # search(:node, "roles:hadoop-secondarynamenode#{env_filter}") do |nsec|
   if !nsec[:fqdn].nil? && !nsec[:fqdn].empty?
-    Chef::Log.info("SECONDARY [#{nsec[:fqdn]}") if debug
+    Chef::Log.info("HADOOP : SECONDARY [#{nsec[:fqdn]}") if debug
     secondary_name_nodes << nsec[:fqdn]
     secondary_name_node_objects << nsec
   end
@@ -91,36 +98,47 @@ node[:hadoop][:cluster][:secondary_name_nodes] = secondary_name_nodes
 
 # Check for errors
 if secondary_name_nodes.length == 0
-  Chef::Log.info("WARNING - Cannot find Hadoop secondary name node")
+  Chef::Log.info("HADOOP : WARNING - Cannot find Hadoop secondary name node")
+  node[:hadoop][:cluster][:valid_config] = false
 elsif secondary_name_nodes.length > 1
-  Chef::Log.info("WARNING - More than one secondary name node found, using #{secondary_name_nodes[0]}")
+  Chef::Log.info("HADOOP : WARNING - More than one secondary name node found}")
+  node[:hadoop][:cluster][:valid_config] = false
 end
 
 # Find the edge nodes. 
 edge_nodes = Array.new
-search(:node, "roles:hadoop-edgenode#{env_filter}") do |nedge|
+search(:node, "roles:hadoop-edgenode") do |nedge|
+  # search(:node, "roles:hadoop-edgenode#{env_filter}") do |nedge|
   if !nedge[:fqdn].nil? && !nedge[:fqdn].empty?
-    Chef::Log.info("EDGE [#{nedge[:fqdn]}") if debug
+    Chef::Log.info("HADOOP : EDGE [#{nedge[:fqdn]}") if debug
     edge_nodes << nedge[:fqdn] 
   end
 end
 node[:hadoop][:cluster][:edge_nodes] = edge_nodes
 
 # Find the slave nodes. 
+Chef::Log.info("HADOOP : env filter [#{env_filter}]") if debug
 slave_nodes = Array.new
-search(:node, "roles:hadoop-slavenode#{env_filter}") do |nslave|
+search(:node, "roles:hadoop-slavenode") do |nslave|
+  # search(:node, "roles:hadoop-slavenode#{env_filter}") do |nslave|
   if !nslave[:fqdn].nil? && !nslave[:fqdn].empty?
-    Chef::Log.info("SLAVE [#{nslave[:fqdn]}") if debug
+    Chef::Log.info("HADOOP : SLAVE [#{nslave[:fqdn]}") if debug
     slave_nodes << nslave[:fqdn] 
   end
 end
 node[:hadoop][:cluster][:slave_nodes] = slave_nodes
 
+# Check for errors
+if slave_nodes.length == 0
+  Chef::Log.info("HADOOP : WARNING - Cannot find any Hadoop data nodes")
+  node[:hadoop][:cluster][:valid_config] = false
+end
+
 if debug
-  Chef::Log.info("MASTER_NAME_NODES    {" + node[:hadoop][:cluster][:master_name_nodes] .join(",") + "}")
-  Chef::Log.info("SECONDARY_NAME_NODES {" + node[:hadoop][:cluster][:secondary_name_nodes].join(",") + "}")
-  Chef::Log.info("EDGE_NODES           {" + node[:hadoop][:cluster][:edge_nodes].join(",") + "}")
-  Chef::Log.info("SLAVE_NODES          {" + node[:hadoop][:cluster][:slave_nodes].join(",") + "}")
+  Chef::Log.info("HADOOP : MASTER_NAME_NODES    {" + node[:hadoop][:cluster][:master_name_nodes] .join(",") + "}")
+  Chef::Log.info("HADOOP : SECONDARY_NAME_NODES {" + node[:hadoop][:cluster][:secondary_name_nodes].join(",") + "}")
+  Chef::Log.info("HADOOP : EDGE_NODES           {" + node[:hadoop][:cluster][:edge_nodes].join(",") + "}")
+  Chef::Log.info("HADOOP : SLAVE_NODES          {" + node[:hadoop][:cluster][:slave_nodes].join(",") + "}")
 end
 
 # Set the authoritative name node URI (i.e. hdfs://admin.example.com:8020).
@@ -129,7 +147,7 @@ if master_name_nodes.length > 0
   fqdn = master_name_nodes[0]
   port = node[:hadoop][:hdfs][:dfs_access_port]
   fs_default_name = "hdfs://#{fqdn}:#{port}"
-  Chef::Log.info("fs_default_name #{fs_default_name}") if debug
+  Chef::Log.info("HADOOP : fs_default_name #{fs_default_name}") if debug
   node[:hadoop][:core][:fs_default_name] = fs_default_name
 end
 
@@ -140,7 +158,12 @@ master_node_ip = "0.0.0.0"
 if !master_name_node_objects.nil? && master_name_node_objects.length > 0
   master_node_ip = BarclampLibrary::Barclamp::Inventory.get_network_by_type(master_name_node_objects[0],"admin").address
 end
-Chef::Log.info("master_node_ip #{master_node_ip}") if debug
+if master_node_ip.nil? || master_node_ip.empty? || master_node_ip == "0.0.0.0"  
+  Chef::Log.info("HADOOP : WARNING - Invalid master name node IP #{master_node_ip}")
+  node[:hadoop][:cluster][:valid_config] = false
+else
+  Chef::Log.info("HADOOP : MASTER NAME NODE IP #{master_node_ip}") if debug
+end
 
 # The host and port that the MapReduce job tracker runs at. If "local",
 # then jobs are run in-process as a single map and reduce task.
@@ -154,11 +177,25 @@ secondary_node_ip = "0.0.0.0"
 if !secondary_name_node_objects.nil? && secondary_name_node_objects.length > 0
   secondary_node_ip = BarclampLibrary::Barclamp::Inventory.get_network_by_type(secondary_name_node_objects[0],"admin").address
 end
-Chef::Log.info("secondary_node_ip #{secondary_node_ip}") if debug
+if secondary_node_ip.nil? || secondary_node_ip.empty? || secondary_node_ip == "0.0.0.0"  
+  Chef::Log.info("HADOOP : WARNING - Invalid secondary name node IP #{secondary_node_ip}")
+  node[:hadoop][:cluster][:valid_config] = false
+else
+  Chef::Log.info("HADOOP : SECONDARY NAME NODE IP #{secondary_node_ip}") if debug
+end
 
 # The secondary namenode http server address and port. If the port is 0
 # then the server will start on a free port.
 node[:hadoop][:hdfs][:dfs_secondary_http_address] = "#{secondary_node_ip}:50090"
+
+if debug
+  if node[:hadoop][:cluster][:valid_config]
+    Chef::Log.info("HADOOP : CONFIGURATION VALID [true]")
+  else
+    Chef::Log.info("HADOOP : CONFIGURATION VALID [false]")
+  end
+end
+
 node.save
 
 # Create hadoop_log_dir and set ownership/permissions (/var/log/hadoop). 
@@ -193,14 +230,19 @@ end
 # Directory recursive does not set the parent directory owner, group
 # and permissions correctly.
 mapred_system_dir = node[:hadoop][:mapred][:mapred_system_dir]
-make_dir_path(mapred_system_dir, mapred_owner, hadoop_group, "0775")
-# directory mapred_system_dir do
-#  owner mapred_owner
-#  group hadoop_group
-#  mode "0775"
-#  recursive true
-#  action :create
-# end
+mapred_system_dir.each do |path|
+  dir = ""
+  path.split('/').each do |d|
+    next if (d.nil? || d.empty?)
+    dir = "#{dir}/#{d}"
+    directory dir do
+      owner mapred_owner
+      group hadoop_group
+      mode "0775"
+      action :create
+    end
+  end
+end
 
 # Create mapred_local_dir and set ownership/permissions (/var/lib/hadoop-0.20/cache/mapred/mapred/local).
 mapred_local_dir = node[:hadoop][:mapred][:mapred_local_dir]
@@ -300,4 +342,4 @@ end
 #######################################################################
 # End of recipe transactions
 #######################################################################
-Chef::Log.info("END hadoop:default") if debug
+Chef::Log.info("HADOOP : END hadoop:default") if debug

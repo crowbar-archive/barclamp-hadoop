@@ -207,12 +207,20 @@ action :ensure_exists do
       Chef::Log.info("partition #{idx} #{(recreate ? 'differs' : 'is same')}: #{cur_size}/ #{req_size}")
     } 
   end 
-  
+
+=begin
   if !recreate
     Chef::Log.info("partition table matches - not recreating")
     @new_resource.updated = false
   else
     @new_resource.updated = true
+=end
+
+  if !recreate
+    Chef::Log.info("partition table matches - not recreating")
+    @new_resource.updated_by_last_action false
+  else
+    @new_resource.updated_by_last_action true
     
     ### make sure to ensure that there are no mounted 
     ### filesystems on the device
