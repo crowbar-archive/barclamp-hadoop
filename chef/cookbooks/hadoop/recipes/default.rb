@@ -49,6 +49,7 @@ end
 # (i.e. deployment state transition).
 node[:hadoop][:cluster][:valid_config] = true
 
+keys = {}
 # Find the master name nodes (there should only be one). 
 master_name_nodes = Array.new
 master_name_node_objects = Array.new
@@ -58,6 +59,7 @@ search(:node, "roles:hadoop-masternamenode") do |nmas|
     Chef::Log.info("HADOOP : MASTER [#{nmas[:fqdn]}") if debug
     master_name_nodes << nmas[:fqdn]
     master_name_node_objects << nmas
+    keys[nmas.name] = nmas[:crowbar][:root_pub_key]
   end
 end
 node[:hadoop][:cluster][:master_name_nodes] = master_name_nodes
@@ -80,6 +82,7 @@ search(:node, "roles:hadoop-secondarynamenode") do |nsec|
     Chef::Log.info("HADOOP : SECONDARY [#{nsec[:fqdn]}") if debug
     secondary_name_nodes << nsec[:fqdn]
     secondary_name_node_objects << nsec
+    keys[nsec.name] = nsec[:crowbar][:root_pub_key]
   end
 end
 node[:hadoop][:cluster][:secondary_name_nodes] = secondary_name_nodes
@@ -100,6 +103,7 @@ search(:node, "roles:hadoop-edgenode") do |nedge|
   if !nedge[:fqdn].nil? && !nedge[:fqdn].empty?
     Chef::Log.info("HADOOP : EDGE [#{nedge[:fqdn]}") if debug
     edge_nodes << nedge[:fqdn] 
+    keys[nedge.name] = nedge[:crowbar][:root_pub_key]
   end
 end
 node[:hadoop][:cluster][:edge_nodes] = edge_nodes
@@ -112,6 +116,7 @@ search(:node, "roles:hadoop-slavenode") do |nslave|
   if !nslave[:fqdn].nil? && !nslave[:fqdn].empty?
     Chef::Log.info("HADOOP : SLAVE [#{nslave[:fqdn]}") if debug
     slave_nodes << nslave[:fqdn] 
+    keys[nslave.name] = nslave[:crowbar][:root_pub_key]
   end
 end
 node[:hadoop][:cluster][:slave_nodes] = slave_nodes
@@ -185,6 +190,16 @@ if debug
 end
 
 node.save
+
+ruby_block "Add hadoop nodes to authorized key file" do
+  block do
+    keys.each do |k,v|
+      node[:crowbar][:access_keys][k] = v
+    end
+  end
+  action :create
+  notifies :create, "template[/root/.ssh/authorized_keys]", :immediately
+end
 
 # Create hadoop_log_dir and set ownership/permissions (/var/log/hadoop). 
 hadoop_log_dir = node[:hadoop][:env][:hadoop_log_dir]
