@@ -189,17 +189,13 @@ if debug
   end
 end
 
-node.save
-
-ruby_block "Add hadoop nodes to authorized key file" do
-  block do
-    keys.each do |k,v|
-      node[:crowbar][:access_keys][k] = v
-    end
-  end
-  action :create
-  notifies :create, "template[/root/.ssh/authorized_keys]", :immediately
+# "Add hadoop nodes to authorized key file" 
+Chef::Log.fatal("GREG: Hadoop adding keys: #{keys.inspect}")
+keys.each do |k,v|
+  node[:crowbar][:access_keys][k] = v
 end
+
+node.save 
 
 # Create hadoop_log_dir and set ownership/permissions (/var/log/hadoop). 
 hadoop_log_dir = node[:hadoop][:env][:hadoop_log_dir]
