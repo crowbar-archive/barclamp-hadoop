@@ -59,7 +59,7 @@ search(:node, "roles:hadoop-masternamenode") do |nmas|
     Chef::Log.info("HADOOP : MASTER [#{nmas[:fqdn]}") if debug
     master_name_nodes << nmas[:fqdn]
     master_name_node_objects << nmas
-    keys[nmas.name] = nmas[:crowbar][:ssh][:root_pub_key] rescue nil
+    keys[nmas.name] = nmas["crowbar"]["ssh"]["root_pub_key"] rescue nil
   end
 end
 node[:hadoop][:cluster][:master_name_nodes] = master_name_nodes
@@ -82,7 +82,7 @@ search(:node, "roles:hadoop-secondarynamenode") do |nsec|
     Chef::Log.info("HADOOP : SECONDARY [#{nsec[:fqdn]}") if debug
     secondary_name_nodes << nsec[:fqdn]
     secondary_name_node_objects << nsec
-    keys[nsec.name] = nsec[:crowbar][:ssh][:root_pub_key] rescue nil
+    keys[nsec.name] = nsec["crowbar"]["ssh"]["root_pub_key"] rescue nil
   end
 end
 node[:hadoop][:cluster][:secondary_name_nodes] = secondary_name_nodes
@@ -103,7 +103,7 @@ search(:node, "roles:hadoop-edgenode") do |nedge|
   if !nedge[:fqdn].nil? && !nedge[:fqdn].empty?
     Chef::Log.info("HADOOP : EDGE [#{nedge[:fqdn]}") if debug
     edge_nodes << nedge[:fqdn] 
-    keys[nedge.name] = nedge[:crowbar][:ssh][:root_pub_key] rescue nil
+    keys[nedge.name] = nedge["crowbar"]["ssh"]["root_pub_key"] rescue nil
   end
 end
 node[:hadoop][:cluster][:edge_nodes] = edge_nodes
@@ -116,7 +116,7 @@ search(:node, "roles:hadoop-slavenode") do |nslave|
   if !nslave[:fqdn].nil? && !nslave[:fqdn].empty?
     Chef::Log.info("HADOOP : SLAVE [#{nslave[:fqdn]}") if debug
     slave_nodes << nslave[:fqdn] 
-    keys[nslave.name] = nslave[:crowbar][:ssh][:root_pub_key] rescue nil
+    keys[nslave.name] = nslave["crowbar"]["ssh"]["root_pub_key"] rescue nil
   end
 end
 node[:hadoop][:cluster][:slave_nodes] = slave_nodes
@@ -193,9 +193,9 @@ end
 Chef::Log.fatal("GREG: Hadoop adding keys: #{keys.inspect}")
 keys.each do |k,v|
   unless v.nil?
-    node[:crowbar][:ssh] = {} if node[:crowbar][:ssh].nil?
-    node[:crowbar][:ssh][:access_keys] = {} if node[:crowbar][:ssh][:access_keys].nil?
-    node[:crowbar][:ssh][:access_keys][k] = v
+    node["crowbar"]["ssh"] = {} if node["crowbar"]["ssh"].nil?
+    node["crowbar"]["ssh"]["access_keys"] = {} if node["crowbar"]["ssh"]["access_keys"].nil?
+    node["crowbar"]["ssh"]["access_keys"][k] = v
   end
 end
 
