@@ -192,7 +192,11 @@ end
 # "Add hadoop nodes to authorized key file" 
 Chef::Log.fatal("GREG: Hadoop adding keys: #{keys.inspect}")
 keys.each do |k,v|
-  node[:crowbar][:ssh][:access_keys][k] = v unless v.nil?
+  unless v.nil?
+    node[:crowbar][:ssh] = {} if node[:crowbar][:ssh].nil?
+    node[:crowbar][:ssh][:access_keys] = {} if node[:crowbar][:ssh][:access_keys].nil?
+    node[:crowbar][:ssh][:access_keys][k] = v
+  end
 end
 
 node.save 
