@@ -46,3 +46,7 @@ default[:hadoop][:cluster][:process_file_system_owner] = "root"
 default[:hadoop][:cluster][:mapred_file_system_owner] = "mapred"
 default[:hadoop][:cluster][:hdfs_file_system_owner] = "hdfs"
 default[:hadoop][:cluster][:hdfs_file_system_group] = "hdfs"
+
+default[:hadoop][:cluster][:disk_configured] = false
+default[:hadoop][:cluster][:hdfs_configured] = false
+default[:hadoop][:cluster][:valid_config] = true

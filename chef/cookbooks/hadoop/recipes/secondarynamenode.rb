@@ -19,13 +19,11 @@
 # Author: Paul Webster
 #
 
-require File.join(File.dirname(__FILE__), '../libraries/common')
-
 #######################################################################
 # Begin recipe transactions
 #######################################################################
 debug = node[:hadoop][:debug]
-Chef::Log.info("BEGIN hadoop:secondarynamenode") if debug
+Chef::Log.info("HADOOP : BEGIN hadoop:secondarynamenode") if debug
 
 # Local variables
 hdfs_owner = node[:hadoop][:cluster][:hdfs_file_system_owner]
@@ -49,7 +47,6 @@ end
 # Make sure the job tracker doesn't start up on reboot.
 service "hadoop-0.20-secondarynamenode" do
   supports :start => true, :stop => true, :status => true, :restart => true
-  action :enable
   # Subscribe to common configuration change events (default.rb).
   subscribes :restart, resources(:directory => node[:hadoop][:env][:hadoop_log_dir])
   subscribes :restart, resources(:directory => node[:hadoop][:core][:hadoop_tmp_dir])
@@ -95,11 +92,19 @@ fs_checkpoint_dir.each do |path|
 end
 
 # Start the secondary name node service.
-service "hadoop-0.20-secondarynamenode" do
-  action :start
+if node[:hadoop][:cluster][:valid_config]
+  Chef::Log.info("HADOOP : CONFIGURATION VALID - STARTING SECONDARY NAME NODE SERVICES")
+  service "hadoop-0.20-secondarynamenode" do
+    action [ :enable, :start ] 
+  end
+else
+  Chef::Log.info("HADOOP : CONFIGURATION INVALID - STOPPING SECONDARY NAME NODE SERVICES")
+  service "hadoop-0.20-secondarynamenode" do
+    action [ :disable, :stop ] 
+  end
 end
 
 #######################################################################
 # End of recipe transactions
 #######################################################################
-Chef::Log.info("END hadoop:secondarynamenode") if debug
+Chef::Log.info("HADOOP : END hadoop:secondarynamenode") if debug

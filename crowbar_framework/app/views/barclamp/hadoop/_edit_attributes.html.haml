@@ -735,7 +735,7 @@
 
     %p
       %label{ :for => :mapred_map_tasks_speculative_execution }= t('.mapred_map_tasks_speculative_execution')
-      = select_tag :mapred_map_tasks_speculative_execution, options_for_select([["true","true"], ["false", "false"]], @proposal.raw_data['attributes'][@proposal.barclamp][:mapred]["mapred_map_tasks_speculative_execution"]), :onchange => "update_value('mapred/mapred_map_tasks_speculative_execution', 'mapred_map_tasks_speculative_execution', 'string')"
+      = select_tag :mapred_map_tasks_speculative_execution, options_for_select([["false", "false"], ["true","true"]], @proposal.raw_data['attributes'][@proposal.barclamp][:mapred]["mapred_map_tasks_speculative_execution"]), :onchange => "update_value('mapred/mapred_map_tasks_speculative_execution', 'mapred_map_tasks_speculative_execution', 'string')"
 
     %p
       %label{ :for => :mapred_max_tracker_blacklists }= t('.mapred_max_tracker_blacklists')
