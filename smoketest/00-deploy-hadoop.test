@@ -1,15 +1,4 @@
 #!/bin/sh
 # This is a placeholder for the real Hadoop smoketest.
 # It does nothing and fails.
-cd "$HOME/testing/cli"
-echo "Deploying Hadoop"
-if crowbar hadoop proposal create cluster1 && \
-    crowbar hadoop proposal commit cluster1; then
-    echo "Hadoop deployed."
-    crowbar hadoop show cluster1 >"$LOGDIR/hadoop.json"
-    exit 0
-else
-    echo "Hadoop failed to deploy."
-    crowbar hadoop proposal show cluster1 >"$LOGDIR/hadoop-failed.json"
-    exit 1
-fi
+exit 1
