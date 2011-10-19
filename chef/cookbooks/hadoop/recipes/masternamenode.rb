@@ -215,7 +215,6 @@ else
 end
 
 # Enables the Cloudera Service and Configuration Manager (SCM).
-# Requires the installation of the Cloudera Enterprise Edition.
 if node[:hadoop][:cloudera_enterprise_scm] == "true"
   include_recipe 'hadoop::cloudera-scm-server'
 end
