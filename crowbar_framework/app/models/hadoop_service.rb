@@ -21,11 +21,17 @@
 
 class HadoopService < ServiceObject
   
+  #######################################################################
+  # initialize - Initialize this service class.
+  #######################################################################
   def initialize(thelogger)
     @bc_name = "hadoop"
     @logger = thelogger
   end
   
+  #######################################################################
+  # create_proposal - called on proposal creation.
+  #######################################################################
   def create_proposal
     @logger.debug("hadoop create_proposal: entering")
     base = super
@@ -83,6 +89,29 @@ class HadoopService < ServiceObject
     # @logger.debug("hadoop create_proposal: #{base.to_json}")
     @logger.debug("hadoop create_proposal: exiting")
     base
+  end
+  
+  #######################################################################
+  # apply_role_pre_chef_call - called before a chef role is applied.
+  #######################################################################
+  def apply_role_pre_chef_call(old_role, role, all_nodes)
+    @logger.debug("hadoop apply_role_pre_chef_call: entering #{all_nodes.inspect}")
+    return if all_nodes.empty? 
+    
+    # Make sure that the front-end pieces have public ip addreses.
+    net_svc = NetworkService.new @logger
+    [ "hadoop-edgenode" ].each do |element|
+      tnodes = role.override_attributes["hadoop"]["elements"][element]
+      next if tnodes.nil? or tnodes.empty?
+      
+      # Allocate the IP addresses for default, public, host.
+      tnodes.each do |n|
+        next if n.nil?
+        net_svc.allocate_ip "default", "public", "host", n
+      end
+    end
+    
+    @logger.debug("hadoop apply_role_pre_chef_call: leaving")
   end
   
 end

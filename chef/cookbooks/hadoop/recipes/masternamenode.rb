@@ -101,17 +101,6 @@ end
 dfs_base_dir = node[:hadoop][:hdfs][:dfs_base_dir]  
 hb = "#{dfs_base_dir}/hdfs01"
 
-=begin
-# Set the dfs_name_dir configuration. Data partitions are numbered 
-# 1-N (i.e. /mnt/hdfs/hdfs01/meta1 - /mnt/hdfs/hdfs01/metaN).  
-new_array = Array.new
-dir_list = %x{ls -d1 #{hb}/meta*}
-dfs_name_dir = dir_list.split("\n")
-dfs_name_dir.sort
-Chef::Log.info("dfs_name_dir [" + dfs_name_dir.join(",") + "]") if debug
-node.set[:hadoop][:hdfs][:dfs_name_dir] = dfs_name_dir
-=end
-
 node.save
 
 if node[:hadoop][:cluster][:valid_config]
@@ -124,50 +113,48 @@ if node[:hadoop][:cluster][:valid_config]
   # You can't be root (or you need to specify HADOOP_NAMENODE_USER).
   #######################################################################
   
-  if !node[:hadoop][:cluster][:hdfs_configured]
+  if (!File.exists?("#{hb}/meta1/current/VERSION")) 
     
-    if (!File.exists?("#{hb}/meta1/current/VERSION")) 
-      
-      Chef::Log.info("HADOOP : RUNNING HDFS NOW") if debug
-      
-      # Initialize HDFS.
-      # HDFS cannot run as root, so override the process owner (hdfs).
-      # Execution sequence is important to avoid locking conditions;
-      # a) Name node process must be down, job tracker process must be up.
-      #    service hadoop-0.20-namenode stop
-      #    service hadoop-0.20-jobtracker start
-      # b) execute "echo 'Y' | hadoop namenode -format"
-      # c) bring the name node process up
-      #    service hadoop-0.20-namenode start
-      # e) execute "hadoop fs -mkdir /mapred/system"
-      # f) execute "hadoop fs -chown hdfs:hadoop /mapred/system"
-      
-      # Make sure the name node process is down.
-      service "hadoop-0.20-namenode" do
-        action :stop
-      end 
-      
-      # Make sure the jobtracker service is up.
-      service "hadoop-0.20-jobtracker" do
-        action :start
-      end 
-      
-      bash "hadoop-hdfs-format" do
-        user hdfs_owner
-        code <<-EOH
+    Chef::Log.info("HADOOP : RUNNING HDFS FORMAT NOW") if debug
+    
+    # Initialize HDFS.
+    # HDFS cannot run as root, so override the process owner (hdfs).
+    # Execution sequence is important to avoid locking conditions;
+    # a) Name node process must be down, job tracker process must be up.
+    #    service hadoop-0.20-namenode stop
+    #    service hadoop-0.20-jobtracker start
+    # b) execute "echo 'Y' | hadoop namenode -format"
+    # c) bring the name node process up
+    #    service hadoop-0.20-namenode start
+    # e) execute "hadoop fs -mkdir /mapred/system"
+    # f) execute "hadoop fs -chown hdfs:hadoop /mapred/system"
+    
+    # Make sure the name node process is down.
+    service "hadoop-0.20-namenode" do
+      action :stop
+    end 
+    
+    # Make sure the jobtracker service is up.
+    service "hadoop-0.20-jobtracker" do
+      action :start
+    end 
+    
+    bash "hadoop-hdfs-format" do
+      user hdfs_owner
+      code <<-EOH
 echo 'Y' | hadoop namenode -format
 EOH
-      end
-      
-      # Make sure the name node process is up.
-      # {start|stop|status|restart|try-restart|upgrade|rollback}
-      service "hadoop-0.20-namenode" do
-        action :start
-      end 
-      
-      bash "hadoop-hdfs-init" do
-        user hdfs_owner
-        code <<-EOH
+    end
+    
+    # Make sure the name node process is up.
+    # {start|stop|status|restart|try-restart|upgrade|rollback}
+    service "hadoop-0.20-namenode" do
+      action :start
+    end 
+    
+    bash "hadoop-hdfs-init" do
+      user hdfs_owner
+      code <<-EOH
 hadoop fs -mkdir /mapred
 hadoop fs -mkdir /mapred/system
 hadoop fs -chown #{mapred_owner}:#{hadoop_group} /mapred
@@ -175,17 +162,10 @@ hadoop fs -chown #{mapred_owner}:#{hadoop_group} /mapred/system
 hadoop fs -chmod 0775 /mapred
 hadoop fs -chmod 0775 /mapred/system
 EOH
-      end
-      
-    else 
-      Chef::Log.info("HADOOP : SKIPPING HDFS FORMAT(1)") if debug
     end
     
-    node[:hadoop][:cluster][:hdfs_configured] = true    
-    node.save
-    
   else 
-    Chef::Log.info("HADOOP : SKIPPING HDFS FORMAT(2)") if debug
+    Chef::Log.info("HADOOP : HDFS ALREADY FORMATTED") if debug
   end
   
   # Start the namenode service.
