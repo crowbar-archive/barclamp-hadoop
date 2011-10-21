@@ -1,4 +1,62 @@
-#!/bin/sh
+#!/bin/bash
 # This is a placeholder for the real Hadoop smoketest.
 # It does nothing and fails.
-exit 1
+
+spin_until_up() {
+    # $1 = host
+    # $@ = services
+    local host="$1"
+    shift
+    while ! (
+	res=0
+	for f in "$@"; do
+	    run_on "$host" service "$f" status &>/dev/null && continue
+	    res=1
+	    break
+	done
+	(( $res == 0 ))
+    ); do
+	knife ssh 'node:*' chef-client
+	# Wait for the indexer to catch up
+	sleep 30
+    done
+}
+
+echo -n "Finding Hadoop Master NameNode: "
+namenode=$(knife_node_find 'roles:hadoop-masternamenode' 'FQDN')
+echo $namenode
+
+echo -n "Finding Hadoop Secondary Namenode: "
+secondarynamenode=$(knife_node_find 'roles:hadoop-secondarynamenode' 'FQDN')
+echo $secondarynamenode
+
+echo -n "Finding Hadoop Slave Nodes: "
+slavenodes=( $(knife_node_find 'roles:hadoop-slavenode' 'FQDN') )
+echo "${slavenodes[@]}"
+
+# Spin and try to force everything to synchronize.
+# We are not guaranteed to have a fully deployed hadoop once the 
+# proposal commit finishes, so we will kick chef-client on all the nodes 
+# until all the chef services are running.
+echo -n "Waiting for the namenode to come up"
+spin_until_up "$namenode" hadoop-0.20-namenode hadoop-0.20-jobtracker
+echo " Done."
+
+echo -n "Waiting for the slave nodes to come up"
+for node in "${slavenodes[@]}"; do
+    spin_until_up "$node" hadoop-0.20-datanode hadoop-0.20-tasktracker
+done
+echo " Done."
+
+echo -n "Waiting for the secondary name node to come up"
+spin_until_up "$secondarynamenode" hadoop-0.20-secondarynamenode
+echo " Done."
+
+# Get a dfsadmin report from the master name node for graet justice.
+run_on "$namenode" su - hdfs -- hadoop dfsadmin -report
+
+# Run teragen/terasort to verify cluster functionality
+echo "Running teragen..."
+run_on "$namenode" su - hdfs -- hadoop jar hadoop-examples.jar teragen -Dmapred.map.tasks=4 10000 teragen || exit 1
+echo "Running terasort..." 
+run_on "$namenode" su - hdfs -- hadoop jar hadoop-examples.jar terasort -Dmapred.reduce.tasks=4 teragen terasort || exit 1
