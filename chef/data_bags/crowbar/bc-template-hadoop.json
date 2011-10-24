@@ -208,7 +208,7 @@
         "mapred_reduce_parallel_copies": "5",
         "mapred_reduce_slowstart_completed_maps": "0.05",
         "mapred_reduce_tasks": "6",
-        "mapred_reduce_tasks_speculative_execution": "true",
+        "mapred_reduce_tasks_speculative_execution": "false",
         "mapred_skip_attempts_to_start_skipping": "2",
         "mapred_skip_map_auto_incr_proc_count": "true",
         "mapred_skip_map_max_skip_records": "",
