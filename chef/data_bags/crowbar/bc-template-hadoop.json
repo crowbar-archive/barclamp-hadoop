@@ -269,7 +269,6 @@
           "hadoop-secondarynamenode",
           "hadoop-slavenode",
           "hadoop-edgenode"
-        ]
       ],
       "config": {
         "environment": "hadoop-base-config",
