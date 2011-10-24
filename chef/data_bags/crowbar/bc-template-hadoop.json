@@ -265,7 +265,6 @@
       "crowbar-revision": 0,
       "elements": {},
       "element_order": [
-        [ 
           "hadoop-masternamenode",
           "hadoop-secondarynamenode",
           "hadoop-slavenode",

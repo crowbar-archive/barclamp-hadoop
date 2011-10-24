@@ -190,7 +190,6 @@ if debug
 end
 
 # "Add hadoop nodes to authorized key file" 
-Chef::Log.fatal("GREG: Hadoop adding keys: #{keys.inspect}")
 keys.each do |k,v|
   unless v.nil?
     node["crowbar"]["ssh"] = {} if node["crowbar"]["ssh"].nil?
