@@ -91,16 +91,6 @@ node[:hadoop][:hdfs][:dfs_data_dir].each do |path|
     notifies :restart, resources(:service => "hadoop-0.20-datanode")
     notifies :restart, resources(:service => "hadoop-0.20-tasktracker")
   end
-  
-  # Make the lost+found file readable by HDFS or it will complain
-  # about read access when the data node processes are started.
-  lost_found = "#{path}/lost+found"
-  file "#{lost_found}" do
-    owner "root"
-    group "root"
-    mode "0755"
-    only_if { ::File.exists?("#{lost_found}") }
-  end
 end
 
 # Create mapred_local_dir and set ownership/permissions (/var/lib/hadoop-0.20/cache/mapred/mapred/local).

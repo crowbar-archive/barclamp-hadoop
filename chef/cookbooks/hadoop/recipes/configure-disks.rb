@@ -26,12 +26,12 @@ debug = node["hadoop"]["debug"]
 Chef::Log.info("HADOOP : BEGIN hadoop:configure-disks") if debug
 
 # Find all the disks.
-to_use_disks = {}
+to_use_disks = []
 all_disks = node["crowbar"]["disks"]
 all_disks.each { |k,v|
-  to_use_disks[k]=v if v["usage"] == "Storage"  
+  to_use_disks << k if v["usage"] == "Storage"  
 }
-Chef::Log.info("HADOOP : found disk: #{to_use_disks.keys.join(':')}") if debug 
+Chef::Log.info("HADOOP : found disk: #{to_use_disks.join(':')}") if debug 
 
 Chef::Log.info("HADOOP : CONFIGURING DISKS NOW") 
   
@@ -39,9 +39,9 @@ dfs_base_dir = node[:hadoop][:hdfs][:dfs_base_dir]
 # Walk over each of the disks, configuring it if we have to.
 node[:hadoop][:devices] = []
 node[:hadoop][:hdfs][:dfs_data_dir] = []
+node[:hadoop][:mapred][:mapred_local_dir] = []
 disk_cnt = 1
-disks_to_format = Array.new
-to_use_disks.each { |k,v|
+to_use_disks.sort.each { |k|
   # By default, we will format first partition.
   target_suffix= k + "1" 
   target_dev = "/dev/#{k}"
@@ -57,7 +57,7 @@ to_use_disks.each { |k,v|
 
   # Make sure that the kernel is aware of the current state of the 
   # drive partition tables.
-  bash "Initial partprobe of#{target_dev}" do
+  bash "Initial partprobe of #{target_dev}" do
     code "partprobe #{target_dev}"
   end
 
@@ -87,10 +87,11 @@ to_use_disks.each { |k,v|
     not_if "blkid  #{target_dev_part} -t \'TYPE=ext3\' &>/dev/null"
   end
 
-  disk[:mount_point] = "#{dfs_base_dir}/hdfs01/data#{disk_cnt}"
+  disk[:mount_point] = "#{dfs_base_dir}/hdfs01/drive#{disk_cnt}"
   disk[:size] = :remaining
   node[:hadoop][:devices] << disk.dup
-  node[:hadoop][:hdfs][:dfs_data_dir] << disk[:mount_point]
+  node[:hadoop][:hdfs][:dfs_data_dir] << ::File.join(disk[:mount_point],"data")
+  node[:hadoop][:mapred][:mapred_local_dir] << ::File.join(disk[:mount_point],"mapred")
   disk_cnt = disk_cnt + 1
 }
 
@@ -121,6 +122,7 @@ node[:hadoop][:devices].each { |k|
   end
   
 }
+
 #######################################################################
 # End of recipe transactions
 #######################################################################
