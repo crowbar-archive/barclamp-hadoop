@@ -265,10 +265,12 @@
       "crowbar-revision": 0,
       "elements": {},
       "element_order": [
+        [
           "hadoop-masternamenode",
           "hadoop-secondarynamenode",
           "hadoop-slavenode",
           "hadoop-edgenode"
+        ]
       ],
       "config": {
         "environment": "hadoop-base-config",
