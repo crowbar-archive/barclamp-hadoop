@@ -1,6 +1,7 @@
 #!/bin/bash
 # This is a placeholder for the real Hadoop smoketest.
 # It does nothing and fails.
+res=0
 
 spin_until_up() {
     # $1 = host
@@ -52,11 +53,19 @@ echo -n "Waiting for the secondary name node to come up"
 spin_until_up "$secondarynamenode" hadoop-0.20-secondarynamenode
 echo " Done."
 
+as_hdfs() { run_on "$namenode" su - hdfs -- "$@"; }
+
 # Get a dfsadmin report from the master name node for graet justice.
-run_on "$namenode" su - hdfs -- hadoop dfsadmin -report
+as_hdfs hadoop dfsadmin -report
 
 # Run teragen/terasort to verify cluster functionality
 echo "Running teragen..."
-run_on "$namenode" su - hdfs -- hadoop jar hadoop-examples.jar teragen -Dmapred.map.tasks=4 10000 teragen || exit 1
+as_hdfs hadoop jar hadoop-examples.jar teragen -Dmapred.map.tasks=4 \
+    100000 teragen || exit 1
 echo "Running terasort..." 
-run_on "$namenode" su - hdfs -- hadoop jar hadoop-examples.jar terasort -Dmapred.reduce.tasks=4 teragen terasort || exit 1
+as_hdfs hadoop jar hadoop-examples.jar terasort -Dmapred.reduce.tasks=4 \
+    teragen terasort || exit 1
+echo "Running teravalidate..."
+as_hdfs hadoop jar hadoop-examples.jar teravalidate terasort teravalidate || \
+    exit 1
+
