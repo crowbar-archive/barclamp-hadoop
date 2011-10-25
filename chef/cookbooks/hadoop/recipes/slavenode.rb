@@ -78,32 +78,10 @@ service "hadoop-0.20-tasktracker" do
   subscribes :restart, resources(:template => "/etc/hadoop/conf/hadoop-metrics.properties")
 end
 
-# Configure the data node disk mount points (dfs_data_dir).
-# These were set by configure-disks.rb. 
-dfs_data_dir = Array.new
-node[:hadoop][:devices].each do |rec|
-  if (rec.nil? || rec[:mount_point].nil? || rec[:mount_point].empty?)
-    Chef::Log.error("HADOOP : Invalid mount point - ignoring")
-    next
-  end
-  dir = rec[:mount_point] 
-  if File.exists?(dir) && File.directory?(dir)
-    Chef::Log.info("HADOOP : Found mount point #{dir}") if debug
-    dfs_data_dir << dir
-  else
-    Chef::Log.error("HADOOP : Cannot locate mount point #{dir}")
-  end
-end
-dfs_data_dir.sort
-Chef::Log.info("HADOOP : dfs_data_dir [" + dfs_data_dir.join(",") + "]") if debug
-node[:hadoop][:hdfs][:dfs_data_dir] = dfs_data_dir 
-node.save
-
 # Set the dfs_data_dir ownership/permissions (/mnt/hdfs/hdfs01/data1).
 # The directories are already created by the configure-disks.rb script,
 # but we need to fix up the file system permissions.
-dfs_data_dir = node[:hadoop][:hdfs][:dfs_data_dir]
-dfs_data_dir.each do |path|
+node[:hadoop][:hdfs][:dfs_data_dir].each do |path|
   directory path do
     owner hdfs_owner
     group hdfs_group
