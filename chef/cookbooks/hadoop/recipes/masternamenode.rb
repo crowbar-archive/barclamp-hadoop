@@ -176,6 +176,7 @@ EOH
 
   bash "refresh slaves" do
     user hdfs_owner
+    ignore_failure true
     code "hadoop dfsadmin -refreshNodes"
     action :nothing
     subscribes :execute, resources(:template => "/etc/hadoop/conf/slaves")
