@@ -3,54 +3,62 @@
 # It does nothing and fails.
 res=0
 
-spin_until_up() {
-    # $1 = host
-    # $@ = services
+test_services_on() {
     local host="$1"
     shift
-    while ! (
-	res=0
-	for f in "$@"; do
-	    run_on "$host" service "$f" status &>/dev/null && continue
-	    res=1
-	    break
-	done
-	(( $res == 0 ))
-    ); do
+    for f in "$@"; do
+	run_on "$host" ps aux |grep -q -- "-[D]proc_${f} " &>/dev/null && \
+	    continue
+	return 1
+    done
+    return 0
+}
+
+spin_until_up() {
+    for ((x=0; x<3; x++)); do
+	test_services_on "$@" && return 0
 	knife ssh 'node:*' chef-client
 	# Wait for the indexer to catch up
 	sleep 30
     done
+    test_services_on "$@" && return 0
+    echo "Services on $1 did not come up after 3 tries, assuming they never will."
+    exit 1
 }
 
-echo -n "Finding Hadoop Master NameNode: "
-namenode=$(knife_node_find 'roles:hadoop-masternamenode' 'FQDN')
-echo $namenode
+while ! [[ $namenode && $secondarynamenode && ${slavenodes[*]} ]]; do
+    echo "Sleeping to make sure the nodes are indexed..."
+    sleep 30
 
-echo -n "Finding Hadoop Secondary Namenode: "
-secondarynamenode=$(knife_node_find 'roles:hadoop-secondarynamenode' 'FQDN')
-echo $secondarynamenode
+    echo -n "Finding Hadoop Master NameNode: "
+    namenode=$(knife_node_find 'roles:hadoop-masternamenode' 'FQDN')
+    echo $namenode
 
-echo -n "Finding Hadoop Slave Nodes: "
-slavenodes=( $(knife_node_find 'roles:hadoop-slavenode' 'FQDN') )
-echo "${slavenodes[@]}"
+    echo -n "Finding Hadoop Secondary Namenode: "
+    secondarynamenode=$(knife_node_find 'roles:hadoop-secondarynamenode' 'FQDN')
+    echo $secondarynamenode
+
+    echo -n "Finding Hadoop Slave Nodes: "
+    slavenodes=( $(knife_node_find 'roles:hadoop-slavenode' 'FQDN') )
+    echo "${slavenodes[@]}"
+done
 
 # Spin and try to force everything to synchronize.
 # We are not guaranteed to have a fully deployed hadoop once the 
 # proposal commit finishes, so we will kick chef-client on all the nodes 
 # until all the chef services are running.
 echo -n "Waiting for the namenode to come up"
-spin_until_up "$namenode" hadoop-0.20-namenode hadoop-0.20-jobtracker
+spin_until_up "$namenode" namenode jobtracker
 echo " Done."
 
 echo -n "Waiting for the slave nodes to come up"
 for node in "${slavenodes[@]}"; do
-    spin_until_up "$node" hadoop-0.20-datanode hadoop-0.20-tasktracker
+    spin_until_up "$node" datanode tasktracker
 done
 echo " Done."
 
 echo -n "Waiting for the secondary name node to come up"
-spin_until_up "$secondarynamenode" hadoop-0.20-secondarynamenode
+spin_until_up "$secondarynamenode" secondarynamenode
 echo " Done."
 
 as_hdfs() { run_on "$namenode" su - hdfs -- "$@"; }
