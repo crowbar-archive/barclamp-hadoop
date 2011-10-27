@@ -23,24 +23,30 @@
 # Begin recipe transactions
 #######################################################################
 debug = node["hadoop"]["debug"]
-Chef::Log.info("HADOOP : BEGIN hadoop:configure-disks") if debug
-
 # Find all the disks.
 to_use_disks = []
+found_disks = []
 all_disks = node["crowbar"]["disks"]
 all_disks.each { |k,v|
   to_use_disks << k if v["usage"] == "Storage"  
 }
-Chef::Log.info("HADOOP : found disk: #{to_use_disks.join(':')}") if debug 
-
-Chef::Log.info("HADOOP : CONFIGURING DISKS NOW") 
+Chef::Log.info("HADOOP: found disk: #{to_use_disks.join(':')}") if debug  
   
 dfs_base_dir = node[:hadoop][:hdfs][:dfs_base_dir] 
 # Walk over each of the disks, configuring it if we have to.
 node[:hadoop][:devices] = []
 node[:hadoop][:hdfs][:dfs_data_dir] = []
 node[:hadoop][:mapred][:mapred_local_dir] = []
-disk_cnt = 1
+wait_for_format = false
+
+def get_uuid(disk)
+  uuid=nil
+  IO.popen("blkid -c /dev/null -s UUID -o value #{disk}"){ |f|
+    uuid=f.read.strip
+  }
+  uuid
+end
+
 to_use_disks.sort.each { |k|
   # By default, we will format first partition.
   target_suffix= k + "1" 
@@ -54,12 +60,12 @@ to_use_disks.sort.each { |k|
   end
   disk = Hash.new
   disk[:name] = target_dev_part
-
+  
   # Make sure that the kernel is aware of the current state of the 
   # drive partition tables.
-  bash "Initial partprobe of #{target_dev}" do
-    code "partprobe #{target_dev}"
-  end
+  ::Kernel.system("partprobe #{target_dev}")
+  # Let udev catch up, if needed
+  sleep 3
 
   # Create the first partition on the disk if it does not already exist.
   # This takes barely any time, so don't bother parallelizing it.
@@ -67,62 +73,74 @@ to_use_disks.sort.each { |k|
   # This ensures that it is optimally aligned from an RMW cycle minimization
   # standpoint for just about everything -- RAID stripes, SSD erase blocks, 
   # 4k sector drives, you name it, and we can have >2TB volumes.
-  bash "parted #{target_dev_part} into existence" do
-    code <<-__END__
-      parted -s #{target_dev} -- mklabel gpt mkpart primary ext2 1MB -1s
-      partprobe #{target_dev}
-      sleep 5
-      dd if=/dev/zero of=#{target_dev_part} bs=1024 count=65
-      __END__
-    not_if "grep -q \'#{target_suffix}$\' /proc/partitions"
+  unless ::Kernel.system("grep -q \'#{target_suffix}$\' /proc/partitions")
+    Chef::Log.info("HADOOP: Creating hadoop partition on #{target_dev}")
+    ::Kernel.system("parted -s #{target_dev} -- mklabel gpt mkpart primary ext2 1MB -1s")
+    ::Kernel.system("partprobe #{target_dev}")
+      sleep 3
+    ::Kernel.system("dd if=/dev/zero of=#{target_dev_part} bs=1024 count=65")
   end
 
-  # Check to see if there is an ext3 volume on the first partition of the 
+  # Check to see if there is a volume on the first partition of the 
   # drive.  If not, fork and exec our formatter.  We will wait later.
-  ruby_block "Lazy format #{target_dev_part}" do
-    block do
-      Chef::Log.info("HADOOP: formatting #{target_dev_part}") if debug
-      ::Kernel.exec "mkfs.ext3 #{target_dev_part}" unless ::Process.fork
-    end
-    not_if "blkid  #{target_dev_part} -t \'TYPE=ext3\' &>/dev/null"
+  if ::Kernel.system("blkid -c /dev/null #{target_dev_part} &>/dev/null")
+    # This filesystem already exists.  Save its UUID for later.
+    disk[:uuid]=get_uuid target_dev_part
+  else
+    Chef::Log.info("HADOOP: formatting #{target_dev_part}") if debug
+    ::Kernel.exec "mkfs.ext3 #{target_dev_part}" unless ::Process.fork
+    disk[:fresh] = true
+    wait_for_format = true
   end
-
-  disk[:mount_point] = "#{dfs_base_dir}/hdfs01/drive#{disk_cnt}"
-  disk[:size] = :remaining
-  node[:hadoop][:devices] << disk.dup
-  node[:hadoop][:hdfs][:dfs_data_dir] << ::File.join(disk[:mount_point],"data")
-  node[:hadoop][:mapred][:mapred_local_dir] << ::File.join(disk[:mount_point],"mapred")
-  disk_cnt = disk_cnt + 1
+  
+  found_disks << disk.dup
 }
 
-node.save
 # Wait for formatting to finish
 
-ruby_block "Wait for formats to finish" do
-  block do
-    Chef::Log.info("HADOOP: Waiting on all drives to finish formatting") if debug
-    ::Process.waitall
-  end
+if wait_for_format
+  Chef::Log.info("HADOOP: Waiting on all drives to finish formatting") if debug
+  ::Process.waitall
 end
   
 # Setup the mount points, if needed
-node[:hadoop][:devices].each { |k|   
-  directory k[:mount_point] do
-    recursive true
-    action :create
+found_disks.each { |disk|
+  if disk[:fresh]
+    # We just created this filesystem.  
+    # Grab its UUID and create a mount point
+    disk[:uuid]=get_uuid disk[:name]
+    Chef::Log.info("HADOOP: Adding #{disk[:name]} (#{disk[:uuid]}) to the Hadoop configuration.")
+    disk[:mount_point]="#{dfs_base_dir}/hdfs01/#{disk[:uuid]}"
+    ::Kernel.system("mkdir -p #{disk[:mount_point]}")
+  elsif disk[:uuid]
+    # This filesystem already existed.
+    # If we did not create a mountpoint for it, print a warning and skip it.
+    disk[:mount_point]="#{dfs_base_dir}/hdfs01/#{disk[:uuid]}"
+    unless ::File.exists?(disk[:mount_point]) and ::File.directory?(disk[:mount_point])
+      Chef::Log.warn("HADOOP: #{disk[:name]} (#{disk[:uuid]}) was not created by configure-disks, ignoring.")
+      Chef::Log.warn("HADOOP: If you want to use this disk, please erase any data on it and zero the partition information.")
+      next
+    end
   end
   
-  mount k[:mount_point]  do  
-    device k[:name]
+  node[:hadoop][:devices] << disk
+  node[:hadoop][:hdfs][:dfs_data_dir] << ::File.join(disk[:mount_point],"data")
+  node[:hadoop][:mapred][:mapred_local_dir] << ::File.join(disk[:mount_point],"mapred")
+  mount disk[:mount_point]  do  
+    device disk[:uuid]
+    device_type :uuid
     options "noatime,nodiratime"
     dump 0  
     pass 0 # no FSCK testing.
     fstype "ext3"
     action [:mount, :enable]
   end
-  
 }
 
+# Prevent unneeded churn in the recipies by making sure things are sorted.
+node[:hadoop][:hdfs][:dfs_data_dir].sort!
+node[:hadoop][:mapred][:mapred_local_dir].sort!
+node.save
 #######################################################################
 # End of recipe transactions
 #######################################################################
