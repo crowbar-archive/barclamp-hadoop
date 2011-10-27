@@ -78,7 +78,7 @@ service "hadoop-0.20-tasktracker" do
   subscribes :restart, resources(:template => "/etc/hadoop/conf/hadoop-metrics.properties")
 end
 
-# Set the dfs_data_dir ownership/permissions (/mnt/hdfs/hdfs01/data1).
+# Set the dfs_data_dir ownership/permissions.
 # The directories are already created by the configure-disks.rb script,
 # but we need to fix up the file system permissions.
 node[:hadoop][:hdfs][:dfs_data_dir].each do |path|
@@ -93,7 +93,7 @@ node[:hadoop][:hdfs][:dfs_data_dir].each do |path|
   end
 end
 
-# Create mapred_local_dir and set ownership/permissions (/var/lib/hadoop-0.20/cache/mapred/mapred/local).
+# Create mapred_local_dir and set ownership/permissions.
 mapred_local_dir = node[:hadoop][:mapred][:mapred_local_dir]
 mapred_local_dir.each do |path|
   directory path do
