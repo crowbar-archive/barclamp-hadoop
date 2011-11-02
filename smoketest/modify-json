@@ -1,0 +1,3 @@
+#!/bin/bash
+sed -e '/"dfs_replication":/ s/3/1/' \
+    -e '/"dfs_datanode_du_reserved":/ s/10737418240/0/'

@@ -308,3 +308,6 @@ rpms:
 
 extra_files:
   - http://download.oracle.com/otn-pub/java/jdk/6u27-b07/jdk-6u27-linux-x64-rpm.bin java
+
+smoketest:
+  timeout: 900

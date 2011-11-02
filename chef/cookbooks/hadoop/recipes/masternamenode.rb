@@ -53,7 +53,6 @@ service "hadoop-0.20-namenode" do
   subscribes :restart, resources(:directory => node[:hadoop][:core][:fs_s3_buffer_dir])
   subscribes :restart, resources(:template => "/etc/security/limits.conf")
   subscribes :restart, resources(:template => "/etc/hadoop/conf/masters")
-  subscribes :restart, resources(:template => "/etc/hadoop/conf/slaves")
   subscribes :restart, resources(:template => "/etc/hadoop/conf/core-site.xml")
   subscribes :restart, resources(:template => "/etc/hadoop/conf/hdfs-site.xml")
   subscribes :restart, resources(:template => "/etc/hadoop/conf/mapred-site.xml")
@@ -70,7 +69,6 @@ service "hadoop-0.20-jobtracker" do
   subscribes :restart, resources(:directory => node[:hadoop][:core][:fs_s3_buffer_dir])
   subscribes :restart, resources(:template => "/etc/security/limits.conf")
   subscribes :restart, resources(:template => "/etc/hadoop/conf/masters")
-  subscribes :restart, resources(:template => "/etc/hadoop/conf/slaves")
   subscribes :restart, resources(:template => "/etc/hadoop/conf/core-site.xml")
   subscribes :restart, resources(:template => "/etc/hadoop/conf/hdfs-site.xml")
   subscribes :restart, resources(:template => "/etc/hadoop/conf/mapred-site.xml")
@@ -84,8 +82,6 @@ template "/etc/hadoop/conf/dfs.hosts.exclude" do
   group hadoop_group
   mode "0644"
   source "dfs.hosts.exclude.erb"
-  notifies :restart, resources(:service => "hadoop-0.20-namenode")
-  notifies :restart, resources(:service => "hadoop-0.20-jobtracker")
 end
 
 # Setup the fair scheduler.
@@ -177,7 +173,16 @@ EOH
   service "hadoop-0.20-jobtracker" do
     action [ :enable, :start ] 
   end
-  
+
+  bash "refresh slaves" do
+    user hdfs_owner
+    ignore_failure true
+    code "hadoop dfsadmin -refreshNodes"
+    action :nothing
+    subscribes :execute, resources(:template => "/etc/hadoop/conf/slaves")
+    subscribes :execute, resources(:template => "/etc/hadoop/conf/dfs.hosts.exclude")
+  end
+
 else
   
   Chef::Log.info("HADOOP : CONFIGURATION INVALID - STOPPING MASTER NAME NODE SERVICES")

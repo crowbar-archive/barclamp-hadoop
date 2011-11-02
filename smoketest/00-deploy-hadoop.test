@@ -1,4 +1,94 @@
-#!/bin/sh
+#!/bin/bash
 # This is a placeholder for the real Hadoop smoketest.
 # It does nothing and fails.
-exit 1
+res=0
+
+test_services_on() {
+    local host="$1"
+    shift
+    for f in "$@"; do
+	run_on "$host" ps aux | grep -v '^root' | \
+	    grep -q -- "[-]Dproc_${f} " &>/dev/null && continue
+	return 1
+    done
+    return 0
+}
+
+spin_until_up() {
+    for ((x=0; x<3; x++)); do
+	test_services_on "$@" && return 0
+	knife ssh 'node:*' chef-client 
+	# Wait for the indexer to catch up
+	sleep 30
+    done
+    test_services_on "$@" && return 0
+    echo "Services on $1 did not come up after 3 tries, assuming they never will."
+    exit 1
+}
+
+echo -n "Finding Hadoop Master NameNode: "
+namenode=$(knife_node_find 'roles:hadoop-masternamenode' 'FQDN')
+echo $namenode
+
+echo -n "Finding Hadoop Secondary Namenode: "
+secondarynamenode=$(knife_node_find 'roles:hadoop-secondarynamenode' 'FQDN')
+echo $secondarynamenode
+
+echo -n "Finding Hadoop Slave Nodes: "
+slavenodes=( $(knife_node_find 'roles:hadoop-slavenode' 'FQDN') )
+echo "${slavenodes[@]}"
+
+while ! [[ $namenode && $secondarynamenode && ${slavenodes[*]} ]]; do
+    knife ssh 'node:*' chef-client 
+    echo "Sleeping to make sure the nodes are indexed..."
+    sleep 30
+
+    echo -n "Finding Hadoop Master NameNode: "
+    namenode=$(knife_node_find 'roles:hadoop-masternamenode' 'FQDN')
+    echo $namenode
+
+    echo -n "Finding Hadoop Secondary Namenode: "
+    secondarynamenode=$(knife_node_find 'roles:hadoop-secondarynamenode' 'FQDN')
+    echo $secondarynamenode
+
+    echo -n "Finding Hadoop Slave Nodes: "
+    slavenodes=( $(knife_node_find 'roles:hadoop-slavenode' 'FQDN') )
+    echo "${slavenodes[@]}"
+done
+
+# Spin and try to force everything to synchronize.
+# We are not guaranteed to have a fully deployed hadoop once the 
+# proposal commit finishes, so we will kick chef-client on all the nodes 
+# until all the chef services are running.
+echo -n "Waiting for the namenode to come up"
+spin_until_up "$namenode" namenode jobtracker
+echo " Done."
+
+echo -n "Waiting for the slave nodes to come up"
+for node in "${slavenodes[@]}"; do
+    spin_until_up "$node" datanode tasktracker
+done
+echo " Done."
+
+echo -n "Waiting for the secondary name node to come up"
+spin_until_up "$secondarynamenode" secondarynamenode
+echo " Done."
+
+as_hdfs() { run_on "$namenode" su - hdfs -- "$@"; }
+
+# Get a dfsadmin report from the master name node for graet justice.
+as_hdfs hadoop dfsadmin -report
+
+# Run teragen/terasort to verify cluster functionality
+echo "Running teragen..."
+as_hdfs hadoop jar hadoop-examples.jar teragen -Dmapred.map.tasks=4 \
+    100000 teragen || exit 1
+echo "Running terasort..." 
+as_hdfs hadoop jar hadoop-examples.jar terasort -Dmapred.reduce.tasks=4 \
+    teragen terasort || exit 1
+echo "Running teravalidate..."
+as_hdfs hadoop jar hadoop-examples.jar teravalidate terasort teravalidate || \
+    exit 1
+
+echo "Hadoop smoketest passed."
+ exit 0

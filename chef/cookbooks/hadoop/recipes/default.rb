@@ -124,7 +124,9 @@ node[:hadoop][:cluster][:slave_nodes] = slave_nodes
 # Check for errors
 if slave_nodes.length == 0
   Chef::Log.info("HADOOP : WARNING - Cannot find any Hadoop data nodes")
-  node[:hadoop][:cluster][:valid_config] = false
+  # Not having slave nodes is fine for now -- it just means that they have not
+  # joined themselves to the cluster.
+  #  node[:hadoop][:cluster][:valid_config] = false
 end
 
 if debug
@@ -190,7 +192,6 @@ if debug
 end
 
 # "Add hadoop nodes to authorized key file" 
-Chef::Log.fatal("GREG: Hadoop adding keys: #{keys.inspect}")
 keys.each do |k,v|
   unless v.nil?
     node["crowbar"]["ssh"] = {} if node["crowbar"]["ssh"].nil?
