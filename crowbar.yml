@@ -28,8 +28,14 @@ crowbar:
   layout: 1
   order: 200
 
+nav:
+  help:
+    hadoop_ug: '"/hadoop_users_guide.pdf", { :link => { :target => "_blank" } }'
+    
 locale_additions:
   en:
+    nav:
+      hadoop_ug: Hadoop
     barclamp:
       hadoop:
         edit_deployment: 
