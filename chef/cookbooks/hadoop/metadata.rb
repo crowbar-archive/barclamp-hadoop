@@ -9,5 +9,3 @@ recipe           "hadoop::masternamenode", "Installs the master name node packag
 recipe           "hadoop::secondarynamenode", "Installs the secondary name node package and prepares the file system."
 recipe           "hadoop::slavenode", "Installs the slave node and task tracker packages and prepares the file system."
 recipe           "hadoop::edgenode", "Installs the edge node and task tracker packages and prepares the file system."
-recipe           "hadoop::cloudera-scm-server", "Install the Cloudera Service and Configuration Manager (SCM) server."
-recipe           "hadoop::cloudera-scm-agent", "Install the Cloudera Service and Configuration Manager (SCM) agent."

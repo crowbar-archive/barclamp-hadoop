@@ -124,9 +124,6 @@ node[:hadoop][:cluster][:slave_nodes] = slave_nodes
 # Check for errors
 if slave_nodes.length == 0
   Chef::Log.info("HADOOP : WARNING - Cannot find any Hadoop data nodes")
-  # Not having slave nodes is fine for now -- it just means that they have not
-  # joined themselves to the cluster.
-  #  node[:hadoop][:cluster][:valid_config] = false
 end
 
 if debug
@@ -146,9 +143,9 @@ if master_name_nodes.length > 0
   node[:hadoop][:core][:fs_default_name] = fs_default_name
 end
 
-# Map/Reduce setup
-# mapred.job.tracker needs to be set to the IP of the Master Node running job tracker
-# mapred.job.tracker.http.address needs to also be set to the above IP
+# Map/Reduce setup.
+# mapred.job.tracker needs to be set to the IP of the Master Node running job tracker.
+# mapred.job.tracker.http.address needs to also be set to the above IP.
 master_node_ip = "0.0.0.0"
 if !master_name_node_objects.nil? && master_name_node_objects.length > 0
   master_node_ip = BarclampLibrary::Barclamp::Inventory.get_network_by_type(master_name_node_objects[0],"admin").address

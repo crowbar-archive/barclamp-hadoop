@@ -42,4 +42,3 @@ attribute :geo,                   :kind_of => Hash
 attribute :part,                  :kind_of => Array
 attribute :status,                :kind_of => Symbol
 attribute :cmd,                   :kind_of => String
-

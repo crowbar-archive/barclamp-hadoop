@@ -31,9 +31,6 @@ hdfs_owner = node[:hadoop][:cluster][:hdfs_file_system_owner]
 mapred_owner = node[:hadoop][:cluster][:mapred_file_system_owner]
 hadoop_group = node[:hadoop][:cluster][:global_file_system_group]
 
-# Set the hadoop node type.
-node[:hadoop][:cluster][:node_type] = "masternamenode"
-
 # Install the name node package.
 package "hadoop-0.20-namenode" do
   action :install
@@ -173,7 +170,7 @@ EOH
   service "hadoop-0.20-jobtracker" do
     action [ :enable, :start ] 
   end
-
+  
   bash "refresh slaves" do
     user hdfs_owner
     ignore_failure true
@@ -182,7 +179,7 @@ EOH
     subscribes :execute, resources(:template => "/etc/hadoop/conf/slaves")
     subscribes :execute, resources(:template => "/etc/hadoop/conf/dfs.hosts.exclude")
   end
-
+  
 else
   
   Chef::Log.info("HADOOP : CONFIGURATION INVALID - STOPPING MASTER NAME NODE SERVICES")
@@ -197,11 +194,6 @@ else
     action [ :disable, :stop ] 
   end
   
-end
-
-# Enables the Cloudera Service and Configuration Manager (SCM).
-if node[:hadoop][:cloudera_enterprise_scm] == "true"
-  include_recipe 'hadoop::cloudera-scm-server'
 end
 
 #######################################################################

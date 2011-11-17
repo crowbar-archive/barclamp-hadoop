@@ -31,9 +31,6 @@ mapred_owner = node[:hadoop][:cluster][:mapred_file_system_owner]
 hadoop_group = node[:hadoop][:cluster][:global_file_system_group]
 hdfs_group = node[:hadoop][:cluster][:hdfs_file_system_group]
 
-# Set the hadoop node type.
-node[:hadoop][:cluster][:node_type] = "slavenode"
-
 # Install the data node package.
 package "hadoop-0.20-datanode" do
   action :install
@@ -130,11 +127,6 @@ else
   service "hadoop-0.20-tasktracker" do
     action [ :disable, :stop ] 
   end
-end
-
-# Enables the Cloudera Service and Configuration Manager (SCM).
-if node[:hadoop][:cloudera_enterprise_scm] == "true"
-  include_recipe 'hadoop::cloudera-scm-agent'
 end
 
 #######################################################################

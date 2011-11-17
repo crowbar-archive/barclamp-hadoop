@@ -25,10 +25,6 @@
 debug = node[:hadoop][:debug]
 Chef::Log.info("HADOOP : BEGIN hadoop:edgenode") if debug
 
-# Set the hadoop node type.
-node[:hadoop][:cluster][:node_type] = "edgenode"
-node.save
-
 #######################################################################
 # End of recipe transactions
 #######################################################################

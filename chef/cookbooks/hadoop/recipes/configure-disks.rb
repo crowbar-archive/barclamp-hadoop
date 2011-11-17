@@ -31,7 +31,7 @@ all_disks.each { |k,v|
   to_use_disks << k if v["usage"] == "Storage"  
 }
 Chef::Log.info("HADOOP: found disk: #{to_use_disks.join(':')}") if debug  
-  
+
 dfs_base_dir = node[:hadoop][:hdfs][:dfs_base_dir] 
 # Walk over each of the disks, configuring it if we have to.
 node[:hadoop][:devices] = []
@@ -66,7 +66,7 @@ to_use_disks.sort.each { |k|
   ::Kernel.system("partprobe #{target_dev}")
   # Let udev catch up, if needed
   sleep 3
-
+  
   # Create the first partition on the disk if it does not already exist.
   # This takes barely any time, so don't bother parallelizing it.
   # Create the first partition starting at 1MB into the disk, and use GPT.
@@ -77,10 +77,10 @@ to_use_disks.sort.each { |k|
     Chef::Log.info("HADOOP: Creating hadoop partition on #{target_dev}")
     ::Kernel.system("parted -s #{target_dev} -- mklabel gpt mkpart primary ext2 1MB -1s")
     ::Kernel.system("partprobe #{target_dev}")
-      sleep 3
+    sleep 3
     ::Kernel.system("dd if=/dev/zero of=#{target_dev_part} bs=1024 count=65")
   end
-
+  
   # Check to see if there is a volume on the first partition of the 
   # drive.  If not, fork and exec our formatter.  We will wait later.
   if ::Kernel.system("blkid -c /dev/null #{target_dev_part} &>/dev/null")
@@ -97,17 +97,16 @@ to_use_disks.sort.each { |k|
 }
 
 # Wait for formatting to finish
-
 if wait_for_format
   Chef::Log.info("HADOOP: Waiting on all drives to finish formatting") if debug
   ::Process.waitall
 end
-  
+
 # Setup the mount points, if needed
 found_disks.each { |disk|
   if disk[:fresh]
     # We just created this filesystem.  
-    # Grab its UUID and create a mount point
+    # Grab its UUID and create a mount point.
     disk[:uuid]=get_uuid disk[:name]
     Chef::Log.info("HADOOP: Adding #{disk[:name]} (#{disk[:uuid]}) to the Hadoop configuration.")
     disk[:mount_point]="#{dfs_base_dir}/hdfs01/#{disk[:uuid]}"
@@ -137,10 +136,11 @@ found_disks.each { |disk|
   end
 }
 
-# Prevent unneeded churn in the recipies by making sure things are sorted.
+# Prevent unneeded churn in the recipes by making sure things are sorted.
 node[:hadoop][:hdfs][:dfs_data_dir].sort!
 node[:hadoop][:mapred][:mapred_local_dir].sort!
 node.save
+
 #######################################################################
 # End of recipe transactions
 #######################################################################

@@ -29,10 +29,6 @@ Chef::Log.info("HADOOP : BEGIN hadoop:secondarynamenode") if debug
 hdfs_owner = node[:hadoop][:cluster][:hdfs_file_system_owner]
 hadoop_group = node[:hadoop][:cluster][:global_file_system_group]
 
-# Set the hadoop node type.
-node[:hadoop][:cluster][:node_type] = "secondarynamenode"
-node.save
-
 # Install the secondary name node service. We install the jobtracker
 # package on the secondary name node but do not start the service up.
 package "hadoop-0.20-secondarynamenode" do

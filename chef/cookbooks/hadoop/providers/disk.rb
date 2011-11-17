@@ -207,7 +207,7 @@ action :ensure_exists do
       Chef::Log.info("partition #{idx} #{(recreate ? 'differs' : 'is same')}: #{cur_size}/ #{req_size}")
     } 
   end 
-
+  
 =begin
   if !recreate
     Chef::Log.info("partition table matches - not recreating")
@@ -215,7 +215,7 @@ action :ensure_exists do
   else
     @new_resource.updated = true
 =end
-
+  
   if !recreate
     Chef::Log.info("partition table matches - not recreating")
     @new_resource.updated_by_last_action false
@@ -242,7 +242,7 @@ action :ensure_exists do
       command "#{cmd}"
       returns [0,1]  
     end
-
+    
     # create new partitions    
     cur_cyl = 0
     idx = 0
@@ -263,4 +263,3 @@ action :ensure_exists do
     }
   end
 end
-
