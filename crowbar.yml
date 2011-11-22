@@ -38,6 +38,7 @@ locale_additions:
   en:
     nav:
       hadoop_ug: Hadoop
+      hadoop: Hadoop
     barclamp:
       hadoop:
         edit_deployment: 
