@@ -1,0 +1,9 @@
+%section.box70#banner
+  %div#instructions
+    = t('.instructions')
+
+:javascript
+  $('#graphic').attr('src','/images/hadoop/powered_by_hadoop.jpg');
+  $('#banner').attr('visibility','show');  
+    
+= render :partial => 'barclamp/index'

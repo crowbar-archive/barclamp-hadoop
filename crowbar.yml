@@ -29,6 +29,8 @@ crowbar:
   order: 200
 
 nav:
+  barclamps:
+    hadoop: index_barclamp_path(:controller=>'hadoop')
   help:
     hadoop_ug: '"/hadoop_users_guide.pdf", { :link => { :target => "_blank" } }'
     
@@ -288,6 +290,12 @@ locale_additions:
           fair_share_preemption_timeout: Fair Share Preemption Timeout
           pool_max_jobs_default: Pool Maximum Jobs Default
           user_max_jobs_default: User Maximum Jobs Default   
+        index:
+          barclamp: Project
+          state: Status
+          proposal: Proposal
+          description: Description
+          instructions: Apply proposals in order from top to bottom.  Allow each proposal to enter ready state before applying the next one.
 
 rpms:
   repos:
