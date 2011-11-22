@@ -27,6 +27,8 @@ barclamp:
 crowbar:
   layout: 1
   order: 200
+  run_order: 200
+  chef_order: 200
 
 nav:
   barclamps:
