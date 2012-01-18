@@ -75,7 +75,7 @@ to_use_disks.sort.each { |k|
   # 4k sector drives, you name it, and we can have >2TB volumes.
   unless ::Kernel.system("grep -q \'#{target_suffix}$\' /proc/partitions")
     Chef::Log.info("HADOOP: Creating hadoop partition on #{target_dev}")
-    ::Kernel.system("parted -s #{target_dev} -- mklabel gpt mkpart primary ext2 1MB -1s")
+    ::Kernel.system("parted -s #{target_dev} -- unit s mklabel gpt mkpart primary ext2 2048s -1s")
     ::Kernel.system("partprobe #{target_dev}")
     sleep 3
     ::Kernel.system("dd if=/dev/zero of=#{target_dev_part} bs=1024 count=65")
