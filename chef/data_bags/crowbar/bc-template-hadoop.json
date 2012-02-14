@@ -263,6 +263,12 @@
   "deployment": {
     "hadoop": {
       "crowbar-revision": 0,
+      "element_states": {
+        "hadoop-masternamenode": [ "readying", "ready", "applying" ],
+        "hadoop-secondarynamenode": [ "readying", "ready", "applying" ],
+        "hadoop-slavenode": [ "readying", "ready", "applying" ],
+        "hadoop-edgenode": [ "readying", "ready", "applying" ]
+      },
       "elements": {},
       "element_order": [
         [
