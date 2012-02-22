@@ -302,7 +302,12 @@ locale_additions:
 
 rpms:
   repos:
-    - bare cloudera-cdh3 10 http://archive.cloudera.com/redhat/cdh/3/
+    redhat-5.7:
+      - bare cloudera-cdh3 10 http://archive.cloudera.com/redhat/cdh/3/
+    centos-5.7:
+      - bare cloudera-cdh3 10 http://archive.cloudera.com/redhat/cdh/3/
+    redhat-6.2:
+      - bare cloudera-cdh3 10 http://archive.cloudera.com/redhat/6/x86_64/cdh/3/
 
   pkgs:
     # JDK dependency will be magically satisfied by the Java package below.
@@ -313,6 +318,8 @@ rpms:
     - hadoop-0.20-secondarynamenode
     - hadoop-0.20-datanode
     - hadoop-0.20-tasktracker
+    - hadoop-0.20-sbin
+    - hadoop-0.20-native
 
 extra_files:
   - http://download.oracle.com/otn-pub/java/jdk/6u27-b07/jdk-6u27-linux-x64-rpm.bin java
