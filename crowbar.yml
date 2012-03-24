@@ -22,7 +22,7 @@ barclamp:
   requires:
     - @crowbar
   member:
-    - hadoop
+    - apachehadoop
 
 crowbar:
   layout: 1
