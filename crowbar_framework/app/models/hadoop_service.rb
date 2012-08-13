@@ -2,7 +2,7 @@
 # Cookbook Name: hadoop
 # Recipe: hadoop_service.rb
 #
-# Copyright (c) 2011 Dell Inc.
+# Copyright (c) 2012 Dell Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,14 +20,6 @@
 #
 
 class HadoopService < ServiceObject
-  
-  #######################################################################
-  # initialize - Initialize this service class.
-  #######################################################################
-  def initialize(thelogger)
-    @bc_name = "hadoop"
-    @logger = thelogger
-  end
   
   #######################################################################
   # create_proposal - called on proposal creation.
@@ -48,43 +40,46 @@ class HadoopService < ServiceObject
     # Get the node list, find the admin node, put the hadoop secondary name node
     # on the crowbar admin node (as specified by the RA) and delete the admin
     # node from the array.
-    nodes = NodeObject.all
+    nodes = Node.all
     nodes.each do |n|
-      if n.nil?
-        nodes.delete(n)
-        next
-      end
-      if n.admin?
-        secondary << n[:fqdn] if n[:fqdn]
+      if n.is_admin?
+        secondary << n.name if n.name
         nodes.delete(n)
       end
     end
     
     # Add the master, slave and edge nodes.
     if nodes.size == 1
-      master << nodes[0][:fqdn] if nodes[0][:fqdn]
+      master << nodes[0].name if nodes[0].name
     elsif nodes.size == 2
-      master << nodes[0][:fqdn] if nodes[0][:fqdn]
-      slaves << nodes[1][:fqdn] if nodes[1][:fqdn]        
+      master << nodes[0].name if nodes[0].name
+      slaves << nodes[1].name if nodes[1].name        
     elsif nodes.size == 3
-      master << nodes[0][:fqdn] if nodes[0][:fqdn]
-      slaves << nodes[1][:fqdn] if nodes[1][:fqdn]        
-      edge << nodes[2][:fqdn] if nodes[2][:fqdn]
+      master << nodes[0].name if nodes[0].name
+      slaves << nodes[1].name if nodes[1].name        
+      edge << nodes[2].name if nodes[2].name
     elsif nodes.size > 3
-      master << nodes[0][:fqdn] if nodes[0][:fqdn]
-      slaves << nodes[1][:fqdn] if nodes[1][:fqdn]        
-      edge << nodes[2][:fqdn] if nodes[2][:fqdn]
+      master << nodes[0].name if nodes[0].name
+      slaves << nodes[1].name if nodes[1].name        
+      edge << nodes[2].name if nodes[2].name
       nodes[3 .. nodes.size].each { |n|
-        slaves << n[:fqdn] if n[:fqdn]
+        slaves << n.name if n.name
       }
     end
     
     # Add the proposal deployment elements
-    base["deployment"]["hadoop"]["elements"] = { } 
-    base["deployment"]["hadoop"]["elements"]["hadoop-masternamenode"] = master if master && !master.empty? 
-    base["deployment"]["hadoop"]["elements"]["hadoop-secondarynamenode"] = secondary if secondary && !secondary.empty? 
-    base["deployment"]["hadoop"]["elements"]["hadoop-edgenode"] = edge if edge && !edge.empty?  
-    base["deployment"]["hadoop"]["elements"]["hadoop-slavenode"] = slaves if slaves && !slaves.empty?   
+    master.each do |a|
+      add_role_to_instance_and_node(a, base.name, "hadoop-masternamenode")
+    end
+    secondary.each do |a|
+      add_role_to_instance_and_node(a, base.name, "hadoop-secondarynamenode")
+    end
+    edge.each do |a|
+      add_role_to_instance_and_node(a, base.name, "hadoop-edgenode")
+    end
+    slaves.each do |a|
+      add_role_to_instance_and_node(a, base.name, "hadoop-slavenode")
+    end
     
     # @logger.debug("hadoop create_proposal: #{base.to_json}")
     @logger.debug("hadoop create_proposal: exiting")
@@ -98,17 +93,12 @@ class HadoopService < ServiceObject
     @logger.debug("hadoop apply_role_pre_chef_call: entering #{all_nodes.inspect}")
     return if all_nodes.empty? 
     
-    # Make sure that the front-end pieces have public ip addreses.
-    net_svc = NetworkService.new @logger
-    [ "hadoop-edgenode" ].each do |element|
-      tnodes = role.override_attributes["hadoop"]["elements"][element]
-      next if tnodes.nil? or tnodes.empty?
-      
-      # Allocate the IP addresses for default, public, host.
-      tnodes.each do |n|
-        next if n.nil?
-        net_svc.allocate_ip "default", "public", "host", n
-      end
+    # Assign a public IP address to the edge node for external access.
+    net_barclamp = Barclamp.find_by_name("network")
+    tnodes = new_config.get_nodes_by_role("hadoop-edgenode")
+    # Allocate the IP addresses for default, public, host.
+    tnodes.each do |n|
+      net_barclamp.operations(@logger).allocate_ip "default", "public", "host", n.name
     end
     
     @logger.debug("hadoop apply_role_pre_chef_call: leaving")
