@@ -24,9 +24,9 @@ class HadoopService < ServiceObject
   #######################################################################
   # create_proposal - called on proposal creation.
   #######################################################################
-  def create_proposal
+  def create_proposal(name)
     @logger.debug("hadoop create_proposal: entering")
-    base = super
+    base = super(name)
     
     # Compute the hadoop cluster node distribution.
     # You need at least 3 nodes (secondary name node, master name node
