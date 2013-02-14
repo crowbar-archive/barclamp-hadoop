@@ -19,6 +19,10 @@ barclamp:
   name: hadoop
   display: Hadoop
   version: 0
+  license: "apache2"
+  copyright: "Dell, Inc 2013"
+  api_version: "v2"
+  api_version_accepts: "v2"
   requires:
     - @crowbar
   member:
