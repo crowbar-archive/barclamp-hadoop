@@ -260,6 +260,12 @@
       }
     }
   },
+    "roles": {
+        "hadoop-masternamenode": { "jig": "chef" },
+        "hadoop-secondarynamenode": { "jig": "chef" },
+        "hadoop-slavenode": { "jig": "chef" },
+        "hadoop-edgenode": { "jig": "chef" }
+    },
   "deployment": {
     "hadoop": {
       "crowbar-revision": 0,
