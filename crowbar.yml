@@ -20,7 +20,7 @@ barclamp:
   display: Hadoop
   version: 0
   requires:
-    - @crowbar
+    - '@crowbar'
   member:
     - apachehadoop
 
