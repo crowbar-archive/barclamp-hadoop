@@ -148,7 +148,7 @@ end
 # mapred.job.tracker.http.address needs to also be set to the above IP.
 master_node_ip = "0.0.0.0"
 if !master_name_node_objects.nil? && master_name_node_objects.length > 0
-  master_node_ip = BarclampLibrary::Barclamp::Inventory.get_network_by_type(master_name_node_objects[0],"admin").address
+  master_node_ip = master_name_node_objects[0].address.addr
 end
 if master_node_ip.nil? || master_node_ip.empty? || master_node_ip == "0.0.0.0"  
   Chef::Log.info("HADOOP : WARNING - Invalid master name node IP #{master_node_ip}")
@@ -167,7 +167,7 @@ node[:hadoop][:mapred][:mapred_job_tracker_http_address] = "#{master_node_ip}:50
 
 secondary_node_ip = "0.0.0.0"
 if !secondary_name_node_objects.nil? && secondary_name_node_objects.length > 0
-  secondary_node_ip = BarclampLibrary::Barclamp::Inventory.get_network_by_type(secondary_name_node_objects[0],"admin").address
+  secondary_node_ip = secondary_name_node_objects[0].address.addr
 end
 if secondary_node_ip.nil? || secondary_node_ip.empty? || secondary_node_ip == "0.0.0.0"  
   Chef::Log.info("HADOOP : WARNING - Invalid secondary name node IP #{secondary_node_ip}")
